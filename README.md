@@ -71,12 +71,6 @@ src
 └── utils
 ```
 
-## API Example
-
-```typescript
-export const getUsers = () => axiosInstance.get('/users');
-```
-
 ## Roadmap
 
 Social Login · Push Notification · Offline Data Sync · Dark Mode · i18n · Storybook · Docker · GitHub Actions
