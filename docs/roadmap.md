@@ -81,5 +81,3 @@ UI(MUI → Shadcn/UI)와 PWA(vite-plugin-pwa) 외에는 admin 의 구조를 그�
 - **Offline Data Sync** — 오프라인 쓰기 큐 + 백그라운드 동기화.
 - **i18n** — 다국어.
 - **Social Login** — OAuth 제공자 연동.
-- **TDD 워크플로우 자동화** — react-admin-template `docs/tdd-workflow.md` 설계를 pnpm 기준 공유
-  (`/tdd` 스킬 + PostToolUse 자동 포맷 + Stop 게이트).

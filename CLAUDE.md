@@ -126,5 +126,3 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
       인증/RBAC · MSW · 테스트 · 인프라(Storybook/Docker/CI) 구현 완료.
       상세 단계: [`docs/roadmap.md`](docs/roadmap.md).
 - [ ] **파리티 이후** — Push Notification · Offline Data Sync · i18n · Social Login.
-- [ ] **TDD 워크플로우 자동화 (Claude Code skills + hooks)** — react-admin-template 의
-      `docs/tdd-workflow.md` 설계를 pnpm 기준 그대로 공유.
