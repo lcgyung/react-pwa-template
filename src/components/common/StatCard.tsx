@@ -1,0 +1,19 @@
+import type { ReactNode } from 'react';
+
+import { Card, CardContent } from '@/components/ui/card';
+
+interface StatCardProps {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+}
+
+export const StatCard = ({ label, value, hint }: StatCardProps) => (
+  <Card>
+    <CardContent className="space-y-1">
+      <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{label}</p>
+      <p className="text-3xl font-bold">{value}</p>
+      {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
+    </CardContent>
+  </Card>
+);
