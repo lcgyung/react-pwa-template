@@ -15,11 +15,28 @@ pnpm 명령을 사용하세요. (react-admin-template 과 동일하게 통일.)
 > 참고: pnpm 10+ 는 보안상 의존성의 빌드 스크립트를 기본 차단합니다. `esbuild`/`msw` 의 빌드를
 > 허용하는 설정이 `pnpm-workspace.yaml`(`allowBuilds` / `onlyBuiltDependencies`)에 들어 있습니다.
 
-명령어는 `package.json` 의 `scripts` 를 참고하세요. 비자명한 점: `pnpm build` 는 `tsc -b`
-타입체크를 포함하고, `pnpm dev` 는 5173, `pnpm storybook` 은 6006 포트를 씁니다.
+## 자주 쓰는 명령어
 
-테스트는 별도의 커스텀 스크립트를 만들기보다 Vitest의 표준 단일 실행 방식
-(`pnpm exec vitest run <경로>` / `-t "<이름>"`)을 사용하세요.
+```bash
+pnpm dev                         # 개발 서버 (5173) — PWA(SW/설치)는 여기서 동작 안 함
+pnpm build                       # tsc -b 타입체크 + vite build (SW/매니페스트 생성)
+pnpm preview                     # 빌드 산출물 미리보기 — PWA 검증은 build && preview 로만
+pnpm lint                        # eslint .
+pnpm format                      # prettier --write .
+
+pnpm test                        # 단위/컴포넌트 테스트 (vitest run, jsdom)
+pnpm test:watch                  # watch 모드
+pnpm exec vitest run src/routes/guards.test.tsx       # 단일 파일
+pnpm exec vitest run -t "redirects to /login"         # 테스트명(-t)으로 단일 케이스
+
+pnpm exec tsc -b --noEmit        # 타입체크 단독 (project references; Stop 게이트가 사용)
+
+pnpm storybook                   # Storybook (6006)
+pnpm build-storybook             # 정적 Storybook 빌드
+```
+
+테스트는 별도 커스텀 스크립트 없이 위의 Vitest 표준 단일 실행 방식을 사용하세요.
+전체 스크립트·데모 계정·환경 변수는 [`README.md`](README.md) 참고.
 
 ## 프로젝트 구조
 
@@ -119,6 +136,23 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   Shadcn/UI 프리미티브(`src/components/ui/**`)는 컴포넌트와 variant 를 함께 export 하므로 해당
   디렉터리에 한해 `react-refresh/only-export-components` 규칙을 끕니다(`eslint.config.js`).
 - **Husky + Lint-Staged** — 커밋 시 변경 파일에 자동으로 `eslint --fix` + `prettier`가 적용됩니다.
+
+## Claude Code 자동화 (`.claude/`)
+
+`.claude/settings.json` 이 훅을 등록한다. 코드를 만질 때 아래 동작을 전제로 한다.
+
+- **SessionStart** → `session-context.sh`: 브랜치·Shadcn·PWA 가이드라인 등 컨텍스트를 주입.
+- **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard` 등)을 차단.
+- **PostToolUse(Edit/Write)** → `format-changed-file.sh`(변경 `*.ts(x)` 에 `eslint --fix` + `prettier`,
+  Tailwind 클래스 정렬 포함) + `check-pwa.sh`(매니페스트/SW 설정 검증).
+- **Stop** → `gate.sh`: 세션 종료 전 `tsc -b --noEmit` + `eslint .` 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
+- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`, 현황 문서
+  [`docs/claude-hooks-status.md`](docs/claude-hooks-status.md) 가 함께 제공된다.
+
+## 배포 (인프라)
+
+`Dockerfile`(빌드 → `nginx:1.27` 서빙) + `nginx.conf`(SPA fallback, 정적 에셋 캐싱, 서비스 워커
+no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows/ci.yml`(lint → test → build).
 
 ## 로드맵
 
