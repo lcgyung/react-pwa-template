@@ -29,7 +29,7 @@ export default tseslint.config(
   },
   {
     // Shadcn/UI 프리미티브는 컴포넌트와 variant(cva)·훅을 함께 export 하는 것이 표준이다.
-    files: ['src/components/ui/**'],
+    files: ['src/shared/ui/**'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

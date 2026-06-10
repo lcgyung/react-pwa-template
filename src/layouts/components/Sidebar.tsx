@@ -2,8 +2,8 @@ import { LayoutDashboard, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
-import { cn } from '@/lib/utils';
-import { paths } from '@/routes/paths';
+import { cn } from '@/shared/lib/cn';
+import { paths } from '@/shared/config/paths';
 import { useAuthStore } from '@/stores/authStore';
 import type { Role } from '@/types/user';
 

@@ -1,19 +1,12 @@
-import { Loading } from '@/components/common/Loading';
-import { PageHeader } from '@/components/common/PageHeader';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Loading } from '@/shared/ui/Loading/Loading';
+import { PageHeader } from '@/shared/ui/PageHeader/PageHeader';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
+import { Badge } from '@/shared/ui/badge';
+import { Card } from '@/shared/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { useUsers } from '@/hooks/useUsers';
 import type { Role } from '@/types/user';
-import { formatDate } from '@/utils/format';
+import { formatDate } from '@/shared/lib/format';
 
 const roleVariant: Record<Role, 'destructive' | 'secondary' | 'outline'> = {
   admin: 'destructive',

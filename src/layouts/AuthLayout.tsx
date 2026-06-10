@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { paths } from '@/routes/paths';
+import { paths } from '@/shared/config/paths';
 import { useAuthStore } from '@/stores/authStore';
 
 export const AuthLayout = () => {
