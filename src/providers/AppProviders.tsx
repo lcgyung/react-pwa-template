@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { PWABadge } from '@/components/common/PWABadge';
+import { PWABadge } from '@/widgets/pwa-badge';
 import { ThemeProvider, useThemeStore } from '@/features/theme';
 import { Toaster } from '@/shared/ui/sonner';
 import { QueryProvider } from './QueryProvider';
