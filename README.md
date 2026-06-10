@@ -113,6 +113,11 @@ admin 수준 보일러플레이트(스캐폴딩 · PWA · UI · 데이터 레이
 
 향후 기능(파리티 이후): Social Login · Push Notification · Offline Data Sync · i18n
 
+## Contributing
+
+브랜치 전략·커밋 컨벤션(Conventional Commits)·버전 규칙(SemVer)은 [`CONTRIBUTING.md`](CONTRIBUTING.md),
+변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)를 참고하세요.
+
 ## License
 
 MIT
