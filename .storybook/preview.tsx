@@ -13,7 +13,7 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => (
-      <div className="bg-background text-foreground p-6">
+      <div className="bg-background p-6 text-foreground">
         <Story />
       </div>
     ),

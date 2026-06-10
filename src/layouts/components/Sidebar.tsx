@@ -57,7 +57,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 /** 데스크톱 고정 사이드바 (md 이상에서만 표시). */
 export function Sidebar() {
   return (
-    <aside className="bg-sidebar text-sidebar-foreground hidden w-60 shrink-0 flex-col border-r md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-14 items-center border-b px-4 text-base font-bold">PWA Template</div>
       <SidebarNav />
     </aside>

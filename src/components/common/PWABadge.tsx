@@ -26,7 +26,7 @@ export function PWABadge() {
     <div
       role="alert"
       aria-labelledby="pwa-badge-message"
-      className="fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+      className="fixed right-4 bottom-4 z-50 max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800"
     >
       <p id="pwa-badge-message" className="text-sm text-gray-800 dark:text-gray-100">
         {needRefresh

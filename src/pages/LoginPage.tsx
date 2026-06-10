@@ -74,7 +74,7 @@ export const LoginPage = () => {
               {login.isPending ? '로그인 중…' : '로그인'}
             </Button>
 
-            <p className="text-muted-foreground rounded-md border p-3 text-xs leading-relaxed">
+            <p className="rounded-md border p-3 text-xs leading-relaxed text-muted-foreground">
               데모 계정 — admin@example.com / password (관리자), user@example.com / password (일반)
             </p>
           </form>
