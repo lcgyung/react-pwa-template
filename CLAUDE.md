@@ -191,10 +191,8 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **Stop** → `gate.sh`: 세션 종료 전 `tsc -b --noEmit` + `eslint .` + `prettier --check .` +
   `vitest run` + `pnpm lint:fsd`(Steiger) 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
   `stop_hook_active` 무한루프 가드와 `cd "$CLAUDE_PROJECT_DIR"` cwd 가드 포함.
-- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`(FSD 경계 점검 포함), 그리고
-  마이그레이션 기록 [`docs/fsd-migration.md`](docs/fsd-migration.md) 가 함께 제공된다.
-- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 ratchet —
-  [`docs/fsd-migration.md`](docs/fsd-migration.md) "후속" 절 참고.
+- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`(FSD 경계 점검 포함)가 함께 제공된다.
+- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 ratchet.
 
 ## 배포 (인프라)
 
@@ -205,6 +203,5 @@ no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows
 
 - [x] **admin 수준 보일러플레이트 도달** — 스캐폴딩 · PWA 코어 · UI(Shadcn/Tailwind) · 데이터 레이어 ·
       인증/RBAC · MSW · 테스트 · 인프라(Storybook/Docker/CI) 구현 완료.
-- [x] **FSD 마이그레이션** — 6레이어 재배치 + Steiger 하드 강제 + 게이트 강화 완료
-      ([`docs/fsd-migration.md`](docs/fsd-migration.md)).
+- [x] **FSD 마이그레이션** — 6레이어 재배치 + Steiger 하드 강제 + 게이트 강화 완료.
 - [ ] **파리티 이후** — Push Notification · Offline Data Sync · i18n · Social Login.
