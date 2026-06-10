@@ -2,8 +2,6 @@
 
 React + TypeScript + Vite 기반 PWA 템플릿. Shadcn/UI, React Query, Zustand, React Hook Form으로 모바일 웹·SaaS·MVP를 빠르게 구축하고, 설치형(홈 화면 추가)·오프라인 앱 경험을 제공합니다.
 
-> 구현 현황과 단계별 작업 계획은 [`docs/roadmap.md`](docs/roadmap.md)를 참고하세요.
-
 ## Stack
 
 React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · React Router · React Query · Axios · Zustand · React Hook Form · Zod · Dayjs · MSW · Vitest · ESLint · Prettier · Husky · Storybook
@@ -113,9 +111,9 @@ export const getUsers = async () => {
 
 ## Roadmap
 
-향후 기능(파리티 이후): Social Login · Push Notification · Offline Data Sync · i18n
+admin 수준 보일러플레이트(스캐폴딩 · PWA · UI · 데이터 레이어 · 인증/RBAC · MSW · 테스트 · 인프라)는 **구현 완료**.
 
-admin 수준 보일러플레이트 도달을 위한 단계별 구현 계획은 [`docs/roadmap.md`](docs/roadmap.md)를 참고하세요.
+향후 기능(파리티 이후): Social Login · Push Notification · Offline Data Sync · i18n
 
 ## License
 

@@ -146,8 +146,9 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(변경 `*.ts(x)` 에 `eslint --fix` + `prettier`,
   Tailwind 클래스 정렬 포함) + `check-pwa.sh`(매니페스트/SW 설정 검증).
 - **Stop** → `gate.sh`: 세션 종료 전 `tsc -b --noEmit` + `eslint .` 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
-- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`, 현황 문서
-  [`docs/claude-hooks-status.md`](docs/claude-hooks-status.md) 가 함께 제공된다.
+- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/` 가 함께 제공된다.
+- **잔여(백로그, 후속 컨텍스트에서 진행)**: Stop 게이트에 `vitest run`·`prettier --check` 추가,
+  `/tdd` 스킬(RED→GREEN→REFACTOR 안내) — 의도적으로 미룬 항목이다.
 
 ## 배포 (인프라)
 
@@ -158,5 +159,4 @@ no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows
 
 - [x] **admin 수준 보일러플레이트 도달** — 스캐폴딩 · PWA 코어 · UI(Shadcn/Tailwind) · 데이터 레이어 ·
       인증/RBAC · MSW · 테스트 · 인프라(Storybook/Docker/CI) 구현 완료.
-      상세 단계: [`docs/roadmap.md`](docs/roadmap.md).
 - [ ] **파리티 이후** — Push Notification · Offline Data Sync · i18n · Social Login.
