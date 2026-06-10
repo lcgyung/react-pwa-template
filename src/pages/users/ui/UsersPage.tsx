@@ -1,5 +1,5 @@
-import { Loading } from '@/shared/ui/Loading/Loading';
-import { PageHeader } from '@/shared/ui/PageHeader/PageHeader';
+import { Loading } from '@/shared/ui/Loading';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';

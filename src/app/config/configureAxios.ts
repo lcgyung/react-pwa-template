@@ -1,6 +1,6 @@
 import { clearAuthState, getAuthToken } from '@/entities/session';
-import { configureAuthBridge } from '@/shared/api/axiosInstance';
-import { paths } from '@/shared/config/paths';
+import { configureAuthBridge } from '@/shared/api';
+import { paths } from '@/shared/config';
 
 // axios 인증 브리지 부트스트랩(옵션 B — 의존성 역전).
 // shared/api 는 도메인을 모르므로, 여기서 토큰 getter 와 401 핸들러를 주입한다.

@@ -1,6 +1,6 @@
-import { Loading } from '@/shared/ui/Loading/Loading';
-import { PageHeader } from '@/shared/ui/PageHeader/PageHeader';
-import { StatCard } from '@/shared/ui/StatCard/StatCard';
+import { Loading } from '@/shared/ui/Loading';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { StatCard } from '@/shared/ui/StatCard';
 import { useUsers } from '@/features/users';
 import { useAuthStore } from '@/entities/session';
 

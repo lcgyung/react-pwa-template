@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/cn';
-import { paths } from '@/shared/config/paths';
+import { paths } from '@/shared/config';
 import { useAuthStore } from '@/entities/session';
 import type { Role } from '@/entities/user';
 

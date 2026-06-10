@@ -9,7 +9,15 @@ description: React + shadcn/ui + PWA 변경에 대한 리뷰 기준. Tailwind/�
 
 - 클래스 병합에 cn()을 쓰는가. 임의값([...])과 매직 넘버 남용이 없는가.
 - 색/간격은 디자인 토큰(CSS 변수, theme)으로 가는가.
-- components/ui의 생성 컴포넌트를 불필요하게 직접 수정하지 않았는가(확장은 래퍼로).
+- src/shared/ui의 생성 컴포넌트를 불필요하게 직접 수정하지 않았는가(확장은 래퍼로).
+
+## FSD 경계
+
+- 레이어 단방향 의존(app>pages>widgets>features>entities>shared)을 위반하지 않았는가.
+- 같은 레이어 슬라이스 간 import가 없는가(entities 간 예외는 @x 크로스임포트 API만).
+- 슬라이스 간 import가 index.ts Public API를 경유하는가(배럴 우회 deep import 금지,
+  단 shared/ui 프리미티브 평면 파일은 직접 import 허용).
+- 새 파일이 올바른 레이어·세그먼트(ui/api/model/lib/config)에 배치됐는가.
 
 ## 접근성 (a11y)
 

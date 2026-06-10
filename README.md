@@ -54,6 +54,7 @@ pnpm dev              # 개발 서버
 pnpm build            # 프로덕션 빌드 (타입체크 포함)
 pnpm preview          # 빌드 미리보기 (PWA 동작 확인)
 pnpm lint             # 린트
+pnpm lint:fsd         # FSD 레이어 경계 검사 (Steiger)
 pnpm test             # 테스트
 pnpm storybook        # Storybook (port 6006)
 ```
@@ -71,30 +72,26 @@ VITE_ENABLE_MOCK=true   # MSW 목 API. 실제 백엔드 연동 시 false
 
 - 설치형 앱 (Add to Home Screen) · 오프라인 지원 · 백그라운드 에셋 캐싱
 - 업데이트 전략: `vite-plugin-pwa`의 `registerType: 'prompt'` — 새 버전 감지 시
-  `PWABadge`(`src/components/common/PWABadge.tsx`)가 새로고침을 확인받는 알림을 띄움
+  `PWABadge`(`src/widgets/pwa-badge`)가 새로고침을 확인받는 알림을 띄움
 - 아이콘·테마 색상은 `public/` 의 매니페스트 에셋(192/512px, maskable) 교체로 커스터마이즈
   (`scripts/gen-icons.mjs` 로 플레이스홀더 재생성 가능)
 - SW·설치 동작은 `pnpm build && pnpm preview`(HTTPS/localhost)에서만 확인 가능
 
 ## Structure
 
+[FSD(Feature-Sliced Design) 2.x](https://feature-sliced.design) 6레이어 구조. 위 레이어는 아래
+레이어만 import 할 수 있고(`app > pages > widgets > features > entities > shared`), 슬라이스 간
+import 는 각 슬라이스의 `index.ts`(Public API)를 경유합니다. 경계는 `pnpm lint:fsd`(Steiger)가
+CI에서 강제합니다.
+
 ```text
 src
-├── api          # axios 인스턴스, 인터셉터, 요청 함수
-├── assets       # 정적 리소스
-├── components   # ui(Shadcn/UI 프리미티브) + common(Loading, PageHeader, StatCard, PWABadge)
-├── hooks        # React Query 훅
-├── layouts      # MainLayout(사이드바+헤더), AuthLayout
-├── lib          # cn() 유틸 (clsx + tailwind-merge)
-├── mocks        # MSW 핸들러 · 시드 데이터
-├── pages        # 라우트 단위 페이지
-├── providers    # App / Query / Theme Provider
-├── routes       # 라우트 정의 + 가드 (Protected / Role)
-├── schemas      # zod 스키마
-├── stores       # zustand (auth / theme)
-├── styles       # Tailwind v4 엔트리 CSS (+ Shadcn 테마)
-├── types
-└── utils
+├── app          # 전역 설정 — providers, router(가드), mocks(MSW), styles, config(axios 브리지)
+├── pages        # 라우트 화면 슬라이스 (login, dashboard, users, forbidden, not-found)
+├── widgets      # 페이지 독립 합성 UI (main-layout[사이드바+헤더], auth-layout, pwa-badge)
+├── features     # 사용자 기능 (auth: 로그인/세션 훅 · users: 조회/생성 · theme: 다크모드)
+├── entities     # 도메인 모델 (user: User/Role 타입 · session: 인증 스토어)
+└── shared       # 도메인 무관 인프라 (api: axios · ui: Shadcn 프리미티브 · lib: cn/format · config: paths)
 ```
 
 ## API Example
@@ -106,8 +103,9 @@ export const getUsers = async () => {
 };
 ```
 
-요청·응답 인터셉터로 토큰 주입과 401 리다이렉트를 처리합니다. 컴포넌트는 axios를 직접
-호출하지 않고 `src/hooks`의 React Query 훅을 거칩니다.
+요청·응답 인터셉터로 토큰 주입과 401 리다이렉트를 처리합니다(인증 헬퍼는
+`src/app/config/configureAxios.ts`에서 주입). 컴포넌트는 axios를 직접 호출하지 않고
+각 feature 의 React Query 훅(`@/features/auth`, `@/features/users`)을 거칩니다.
 
 ## Roadmap
 

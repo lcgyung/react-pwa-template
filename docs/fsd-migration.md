@@ -1,7 +1,8 @@
 # FSD 아키텍처 마이그레이션 (react-pwa-template)
 
-> 상태: **실행 계획 확정** — 설계 · 매핑표 · 영향도 · 실제 실행 단계를 한 문서로 통합한 버전.
-> **실제 폴더 이전(코드 이동·설정 변경)은 미수행**이며, 본 문서대로 추후 별도 진행한다.
+> 상태: **적용 완료 (2026-06-10)** — 1~7단계(폴더 이전 + Steiger 하드 강제) 및 §9 게이트 강화
+> (Stop 게이트에 vitest·prettier --check) 까지 본 문서대로 실행 완료. `pnpm lint:fsd` 위반 0.
+> 실행 중 발견된 계획 대비 편차는 §10 참고.
 > 자매 프로젝트 `react-admin-template`과 동일 설계를 동시 적용한다. 차이점은 **Tailwind v4 +
 > Shadcn/UI**(MUI 아님)와 **PWA 레이어**(vite-plugin-pwa, 서비스워커/매니페스트)다.
 >
@@ -486,10 +487,9 @@ FSD에 미숙한 소비자가 흔히 만드는 위반(전부 **commit은 통과*
 - [ ] **`/tdd` 스킬** (RED→GREEN→REFACTOR) — `.claude/skills/tdd/SKILL.md`. `code-review` 스킬과
       같은 컨벤션. 예시: `src/utils/format.test.ts`(유닛), `src/routes/guards.test.tsx`(가드),
       `src/pages/LoginPage.test.tsx`(컴포넌트+MSW). "RED 상태로 턴 종료 금지" 명시.
-- [ ] **Stop 게이트에 vitest** — `pnpm exec vitest run --silent`. **`stop_hook_active` 무한루프
-      가드 동반(필수)**. (7단계의 steiger 연동 시 함께.)
-- [ ] **Stop 게이트에 `prettier --check`** — 현재 누락. ⚠️ **현재 미포맷 ~17개 → `pnpm format`
-      선행** 후 켤 것.
+- [x] **Stop 게이트에 vitest** — `pnpm exec vitest run --silent`. `stop_hook_active` 무한루프
+      가드 동반 적용 완료. (7단계의 steiger 연동 시 함께 적용.)
+- [x] **Stop 게이트에 `prettier --check`** — 적용 완료. 미포맷 17개는 `pnpm format` 선행 처리.
 - [ ] **(백로그) coverage 임계값 ratchet** — "작업마다 테스트 존재"까지 기계적 강제.
       `vitest run --coverage` + thresholds(`@vitest/coverage-v8`). 테스트 쌓인 뒤 점진 상향.
 - [ ] **문서 동기화** — 게이트 변경 후 `CLAUDE.md` Stop 게이트 설명 갱신.
@@ -504,3 +504,26 @@ FSD에 미숙한 소비자가 흔히 만드는 위반(전부 **commit은 통과*
   ratchet(하드)으로 보완.
 - **PWA 확인** — SW·설치는 `pnpm build && pnpm preview` 에서만. `check-pwa.sh` 가 manifest 1차 검증.
 - **성능/안전망** — 전체 `vitest run` 유지(느려지면 `vitest related --run`). husky/lint-staged 유지.
+
+---
+
+## 10. 실행 결과 — 계획 대비 편차 (2026-06-10 적용)
+
+실행 자체는 1~7단계 그대로 진행했고, 아래 4건만 계획과 다르게 보정했다.
+
+1. **`shared/ui/sonner.tsx` 상향 의존(계획 누락)** — Toaster 가 `themeStore`(features/theme)를
+   직접 구독하고 있었다(shared→features 위반). theme 을 `ToasterProps.theme` prop 주입으로
+   바꾸고, `app/providers/AppProviders.tsx` 의 `ThemedToaster` 래퍼가 스토어를 구독해 주입한다.
+2. **shared 세그먼트 배럴 필요(계획의 "깊은 경로 직접 import" 전제 일부 수정)** — Steiger
+   `fsd/public-api` 는 `shared/api`·`shared/config` 세그먼트 배럴(`index.ts`)과 `shared/ui`
+   하위 폴더(Loading/PageHeader/StatCard)별 배럴을 요구한다. 추가 후 import 는 `@/shared/api`,
+   `@/shared/config`, `@/shared/ui/Loading` 형태로 통일. **shadcn 평면 파일(`@/shared/ui/button`)과
+   `@/shared/lib/*` 직접 import 는 계획대로 허용**(Steiger 통과).
+3. **`shared/assets` 제거** — `.gitkeep` 뿐인 빈 세그먼트는 Steiger public-api 에러를 유발해
+   삭제했다. 정적 리소스는 `public/` 사용, 코드 참조 에셋이 생기면 그때 세그먼트로 추가.
+4. **`.prettierrc.json` `tailwindStylesheet` 경로 갱신(계획 누락)** — `./src/styles/index.css` →
+   `./src/app/styles/index.css`. (구 경로면 prettier-plugin-tailwindcss 가 ENOENT 로 실패해
+   lint-staged 커밋이 막힌다.)
+5. **`.storybook/preview.tsx` CSS import 갱신(계획은 "Storybook 무변경"으로 판단)** — 스토리
+   글롭은 무변경이 맞지만, preview 가 전역 CSS 를 상대경로(`../src/styles/index.css`)로
+   import 하고 있어 `../src/app/styles/index.css` 로 1줄 수정.
