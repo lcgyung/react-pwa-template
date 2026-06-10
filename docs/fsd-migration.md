@@ -4,6 +4,9 @@
 > **실제 폴더 이전(코드 이동·설정 변경)은 미수행**이며, 본 문서대로 추후 별도 진행한다.
 > 자매 프로젝트 `react-admin-template`과 동일 설계를 동시 적용한다. 차이점은 **Tailwind v4 +
 > Shadcn/UI**(MUI 아님)와 **PWA 레이어**(vite-plugin-pwa, 서비스워커/매니페스트)다.
+>
+> 또한 **FSD 강제(7단계)** 와 **게이트/자동화 후속(FSD 독립)** 을 본 문서의 단일 로드맵으로
+> 포함한다(구 `claude-hooks-roadmap.md` 흡수·삭제).
 
 ---
 
@@ -325,15 +328,19 @@ pnpm exec tsc -b --noEmit && pnpm exec eslint . && pnpm exec vitest run
 - 루트 import 갱신: `main.tsx`(`@/app/App`, `@/app/styles/index.css`, `@/app/mocks/browser`),
   `vitest.setup.ts`(`@/mocks/server→@/app/mocks/server`).
 
-### 7단계 — Steiger 도입(하드 에러) + 문서화
+### 7단계 — FSD 일관성 강제(Steiger + 컨텍스트 + 리뷰) + 문서화
 
-- devDeps 추가(pnpm): `steiger`, `@feature-sliced/steiger-plugin`.
+> **FSD 벗어나지 않는 코딩**을 강제하는 3종 가드(선제+반응+리뷰). **1~6단계(폴더 이전) 완료가 선행 필수.**
+
+- **(반응/게이트)** devDeps 추가(pnpm): `steiger`, `@feature-sliced/steiger-plugin`.
 - `steiger.config.ts` 신설(`fsd.configs.recommended`). `package.json`에 `"lint:fsd": "steiger ./src"`.
 - **하드 강제 연동**: `.claude/hooks/gate.sh`(Stop)·`.github/workflows/ci.yml`에 `pnpm lint:fsd`
   추가, **위반 시 실패**. 이때 `gate.sh`에 `cd "$CLAUDE_PROJECT_DIR"` 가드도 함께 추가(하위 디렉터리
   실행 시 `tsc -b`/`eslint`/`steiger` 거짓 실패 방지 — 현재 미적용).
 - `pnpm lint:fsd` 실행 → **위반 0 확인.** (옵션 B로 axios, `@x`로 session→user, 통합으로 widget
   cross-import 모두 해소됨)
+- **(선제/가이드)** `.claude/hooks/session-context.sh`: FSD 규칙 한 단락 주입 — 레이어 단방향 의존(`app>pages>widgets>features>entities>shared`) + 슬라이스 간 import는 `index.ts` Public API 경유.
+- **(리뷰)** `.claude/skills/code-review/SKILL.md` + `.claude/agents/code-reviewer.md`: "레이어 경계 위반 / 같은-레이어 cross-import / Public API 우회(배럴 미경유)" 점검 항목 추가.
 - **문서/스킬 갱신**: `CLAUDE.md`(구조 트리 전면 교체 + FSD 의존성/Public API 규칙 섹션 신설),
   `README.md`("## Structure" 트리 교체),
   `.claude/skills/code-review/SKILL.md`(`components/ui`→`src/shared/ui` 문구). 본 문서 상태를
@@ -375,10 +382,10 @@ pnpm exec tsc -b --noEmit && pnpm exec eslint . && pnpm exec vitest run
 - `CLAUDE.md` "프로젝트 구조" 트리 전면 교체 + **FSD 의존성 규칙·Public API 규칙 섹션 신설** + axios
   브리지 gotcha 명시. `README.md` "## Structure" 트리 교체.
 - `.claude/skills/code-review/SKILL.md`의 `components/ui` 참조 1곳 → `src/shared/ui` 문구 갱신.
-  `.claude/agents/code-reviewer.md`는 폴더 참조 없음 → 영향 없음(선택: FSD 경계 점검 항목 추가).
-- 훅: `session-context.sh`·`guard-bash.sh`·`format-changed-file.sh`·`check-pwa.sh`는 경로/확장자
-  기반 → **영향 없음**. `gate.sh`에 `steiger ./src` 추가(7단계). `settings.json`은 파일명 기반 등록 →
-  변경 불필요.
+  `.claude/agents/code-reviewer.md`는 폴더 참조 없음 → 영향 없음(7단계에서 FSD 경계 점검 항목 **확정 추가**).
+- 훅: `guard-bash.sh`·`format-changed-file.sh`·`check-pwa.sh`는 경로/확장자
+  기반 → **영향 없음**. `gate.sh`에 `steiger ./src`(+vitest), `session-context.sh`에 FSD 규칙을
+  추가(둘 다 7단계 확정). `settings.json`은 파일명 기반 등록 → 변경 불필요.
 
 ### 6.2 보일러플레이트 사용 영향도 (소비자 관점)
 
@@ -468,3 +475,32 @@ FSD에 미숙한 소비자가 흔히 만드는 위반(전부 **commit은 통과*
 - 자매 `react-admin-template` 동시 적용은 본 리포 범위 밖(이 세션에선 react-pwa-template만 수정).
 - `tsconfig.*` · `vite.config.ts` · `.storybook/main.ts` · MSW 핸들러 · `public/` ·
   훅 등록(`.claude/settings.json`)은 **변경 불필요**(검증 완료).
+
+---
+
+## 9. 후속: 게이트/자동화 강화 (FSD 독립)
+
+> 아래는 FSD 폴더 이전과 **무관**하게 독립 진행 가능(선행 의존 없음). 위 FSD 강제(7단계)와
+> 별개 트랙이다. (구 `claude-hooks-roadmap.md` 에서 흡수.)
+
+- [ ] **`/tdd` 스킬** (RED→GREEN→REFACTOR) — `.claude/skills/tdd/SKILL.md`. `code-review` 스킬과
+      같은 컨벤션. 예시: `src/utils/format.test.ts`(유닛), `src/routes/guards.test.tsx`(가드),
+      `src/pages/LoginPage.test.tsx`(컴포넌트+MSW). "RED 상태로 턴 종료 금지" 명시.
+- [ ] **Stop 게이트에 vitest** — `pnpm exec vitest run --silent`. **`stop_hook_active` 무한루프
+      가드 동반(필수)**. (7단계의 steiger 연동 시 함께.)
+- [ ] **Stop 게이트에 `prettier --check`** — 현재 누락. ⚠️ **현재 미포맷 ~17개 → `pnpm format`
+      선행** 후 켤 것.
+- [ ] **(백로그) coverage 임계값 ratchet** — "작업마다 테스트 존재"까지 기계적 강제.
+      `vitest run --coverage` + thresholds(`@vitest/coverage-v8`). 테스트 쌓인 뒤 점진 상향.
+- [ ] **문서 동기화** — 게이트 변경 후 `CLAUDE.md` Stop 게이트 설명 갱신.
+
+### 메모 / 가드레일
+
+- **무한루프 가드(필수)** — 현 `gate.sh` 는 stdin/`stop_hook_active` 미검사 → 테스트 게이트 추가
+  시 반드시 시작부에서 stdin을 읽어 `stop_hook_active == true` 면 `exit 0`.
+- **전체 트리 검사 주의** — `eslint .`/`prettier --check .` 는 전체 트리 검사 → 기존 이슈에도
+  막힘. 특히 prettier는 현재 미포맷 파일이 있어 `pnpm format` 선행 필요.
+- **게이트의 한계** — "회귀 방지"지 미작성 테스트는 못 잡는다 → `/tdd`(소프트) + coverage
+  ratchet(하드)으로 보완.
+- **PWA 확인** — SW·설치는 `pnpm build && pnpm preview` 에서만. `check-pwa.sh` 가 manifest 1차 검증.
+- **성능/안전망** — 전체 `vitest run` 유지(느려지면 `vitest related --run`). husky/lint-staged 유지.

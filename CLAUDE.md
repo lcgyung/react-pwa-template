@@ -146,9 +146,9 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(변경 `*.ts(x)` 에 `eslint --fix` + `prettier`,
   Tailwind 클래스 정렬 포함) + `check-pwa.sh`(매니페스트/SW 설정 검증).
 - **Stop** → `gate.sh`: 세션 종료 전 `tsc -b --noEmit` + `eslint .` 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
-- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`, 그리고 로드맵 문서 [`docs/claude-hooks-roadmap.md`](docs/claude-hooks-roadmap.md) 가 함께 제공된다.
+- `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`, 그리고 로드맵 문서 [`docs/fsd-migration.md`](docs/fsd-migration.md)(FSD 강제 + 게이트/자동화 후속) 가 함께 제공된다.
 - **잔여(백로그, 후속 컨텍스트에서 진행)**: Stop 게이트에 `vitest run`·`prettier --check` 추가,
-  `/tdd` 스킬 등 — 전체 목록·가드레일은 [`docs/claude-hooks-roadmap.md`](docs/claude-hooks-roadmap.md) 참고.
+  `/tdd` 스킬 등 — 전체 목록·가드레일은 [`docs/fsd-migration.md`](docs/fsd-migration.md) "후속" 절 참고.
 
 ## 배포 (인프라)
 
