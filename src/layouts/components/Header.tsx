@@ -14,7 +14,7 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/shared/ui/sheet';
 import { useLogout } from '@/hooks/useAuth';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/entities/session';
 import { useThemeStore } from '@/stores/themeStore';
 import { SidebarNav } from './Sidebar';
 

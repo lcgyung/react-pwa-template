@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
-import { useAuthStore } from '@/stores/authStore';
-import type { Role, User } from '@/types/user';
+import { useAuthStore } from '@/entities/session';
+import type { Role, User } from '@/entities/user';
 
 const makeUser = (role: Role): User => ({
   id: 1,

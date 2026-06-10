@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@/App';
 import { configureAuthBridge } from '@/shared/api/axiosInstance';
 import { paths } from '@/shared/config/paths';
-import { clearAuthState, getAuthToken } from '@/stores/authStore';
+import { clearAuthState, getAuthToken } from '@/entities/session';
 
 import '@/styles/index.css';
 

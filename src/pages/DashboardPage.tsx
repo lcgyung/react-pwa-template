@@ -2,7 +2,7 @@ import { Loading } from '@/shared/ui/Loading/Loading';
 import { PageHeader } from '@/shared/ui/PageHeader/PageHeader';
 import { StatCard } from '@/shared/ui/StatCard/StatCard';
 import { useUsers } from '@/hooks/useUsers';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/entities/session';
 
 export const DashboardPage = () => {
   const user = useAuthStore((s) => s.user);
