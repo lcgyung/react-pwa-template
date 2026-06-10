@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-import { useThemeStore } from '@/stores/themeStore';
+import { useThemeStore } from '../model/themeStore';
 
 /**
  * Tailwind 다크 모드 프로바이더.

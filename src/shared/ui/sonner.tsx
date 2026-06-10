@@ -1,13 +1,10 @@
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
-import { useThemeStore } from '@/stores/themeStore';
-
-const Toaster = ({ ...props }: ToasterProps) => {
-  const mode = useThemeStore((s) => s.mode);
-
+// shared 레이어는 테마 스토어(features/theme)를 모른다 — theme 은 호출부에서 prop 으로 주입한다.
+const Toaster = ({ theme = 'system', ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme={mode}
+      theme={theme}
       className="toaster group"
       style={
         {
