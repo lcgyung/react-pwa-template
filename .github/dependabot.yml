@@ -1,24 +1,31 @@
 version: 2
 updates:
-  # npm 의존성 (pnpm-lock.yaml 포함) — 주간, minor/patch 는 한 PR 로 묶는다.
+  # npm 의존성 (pnpm-lock.yaml 포함) — 월간, prod/dev 로 나눠 major 까지 한 PR 로 묶는다.
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+      interval: monthly
+    open-pull-requests-limit: 5
     groups:
-      minor-and-patch:
+      production-deps:
+        dependency-type: production
         update-types:
+          - major
+          - minor
+          - patch
+      development-deps:
+        dependency-type: development
+        update-types:
+          - major
           - minor
           - patch
 
-  # GitHub Actions 워크플로 액션 버전 — 주간, minor/patch 그룹핑.
+  # GitHub Actions 워크플로 액션 버전 — 월간, 전부 한 PR 로 묶는다.
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       actions:
-        update-types:
-          - minor
-          - patch
+        patterns:
+          - '*'

@@ -11,6 +11,12 @@ if printf '%s' "$INPUT" | jq -e '.stop_hook_active == true' >/dev/null 2>&1; the
   exit 0
 fi
 
+# 모드별 하네스 제어: plan 모드는 코드 변경이 없으므로 풀 verify 스킵(약한 제어 — 사람이 계획만
+# 검토 중). 그 외(default·acceptEdits·bypassPermissions)는 아래 풀 게이트를 그대로 강하게 실행.
+if printf '%s' "$INPUT" | jq -e '.permission_mode == "plan"' >/dev/null 2>&1; then
+  exit 0
+fi
+
 # cwd 가드: tsc -b/eslint/vitest/steiger 는 repo 루트 전제. 하위 디렉터리 실행 시 거짓 실패 방지.
 cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}" || exit 0
 

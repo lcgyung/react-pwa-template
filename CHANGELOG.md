@@ -3,6 +3,18 @@
 이 프로젝트의 주요 변경 사항을 기록합니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를
 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 준수합니다.
 
+## [0.2.1] - 2026-06-11
+
+하네스·CI 보강 패치 릴리스.
+
+### Changed
+
+- 하네스: plan 모드에서 Stop 게이트(`gate.sh`)를 스킵 — 모드별 하네스 제어로 plan 단계의 불필요한 검증 차단 해소.
+
+### CI / Infra
+
+- Dependabot PR 노이즈 감소 — 월간 스케줄 + prod/dev 의존성 그룹화.
+
 ## [0.2.0] - 2026-06-11
 
 react-admin-template 파리티 도달 릴리스 — 데이터 레이어·보안·PWA·CI 하네스를 보강했습니다.
