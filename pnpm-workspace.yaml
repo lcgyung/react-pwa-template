@@ -1,6 +1,16 @@
 allowBuilds:
   esbuild: true
   msw: true
+minimumReleaseAgeExclude:
+  - '@storybook/addon-docs@10.4.4'
+  - '@storybook/builder-vite@10.4.4'
+  - '@storybook/csf-plugin@10.4.4'
+  - '@storybook/react-dom-shim@10.4.4'
+  - '@storybook/react-vite@10.4.4'
+  - '@storybook/react@10.4.4'
+  - eslint-plugin-better-tailwindcss@4.6.0
+  - eslint-plugin-storybook@10.4.4
+  - storybook@10.4.4
 onlyBuiltDependencies:
   - esbuild
   - msw
