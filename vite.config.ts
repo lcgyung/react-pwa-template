@@ -110,6 +110,8 @@ export default defineConfig({
         'src/main.tsx',
         'src/vite-env.d.ts',
         'src/**/*.d.ts',
+        // 설치 프롬프트 UI 는 브라우저 beforeinstallprompt 에 의존 — 훅(useInstallPrompt)만 테스트한다.
+        'src/features/pwa-install/ui/**',
       ],
       // ratchet 베이스라인(현재 stmts/lines 28%·branch 68%·funcs 55%): 바로 아래로 고정하고
       // PR 마다 점진 상향한다. 미달 시 vitest 가 non-zero 로 종료 → CI 실패.
