@@ -1,14 +1,20 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { VitePWA } from 'vite-plugin-pwa';
 import { configDefaults, defineConfig } from 'vitest/config';
+
+// ANALYZE=true 일 때만 번들 분석 리포트(dist/stats.html)를 생성한다(기본 build 는 불변).
+const analyze = process.env.ANALYZE === 'true';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    analyze &&
+      visualizer({ filename: 'dist/stats.html', gzipSize: true, brotliSize: true, open: true }),
     VitePWA({
       // 'prompt': 새 버전 감지 시 사용자에게 새로고침을 확인받는다(PWABadge 컴포넌트).
       registerType: 'prompt',
