@@ -2,9 +2,11 @@ import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import betterTailwind from 'eslint-plugin-better-tailwindcss';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import nounsanitized from 'eslint-plugin-no-unsanitized';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import security from 'eslint-plugin-security';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import storybook from 'eslint-plugin-storybook';
 import globals from 'globals';
@@ -125,6 +127,21 @@ export default tseslint.config(
       'better-tailwindcss/enforce-canonical-classes': 'off',
       // 임의값·shadcn/sonner 커스텀 클래스에서 false positive 가 잦아 끈다(오타 방지 가치 < 노이즈).
       'better-tailwindcss/no-unknown-classes': 'off',
+    },
+  },
+  {
+    // 보안 정적 분석. no-unsanitized 는 XSS 직접 가드(dangerouslySetInnerHTML/innerHTML 등)라
+    // a11y 와 동급 'error'. eslint-plugin-security 는 휴리스틱이라 false positive 가 잦아
+    // naming-convention 과 동급 'warn'(recommended 가 이미 전 룰 warn) — 게이트 비차단.
+    files: ['**/*.{ts,tsx}'],
+    plugins: { security, 'no-unsanitized': nounsanitized },
+    rules: {
+      'no-unsanitized/method': 'error',
+      'no-unsanitized/property': 'error',
+      ...security.configs.recommended.rules,
+      // 프론트 정적 라우팅에서 노이즈만 만드는 룰을 끈다(객체 인젝션·비literal fs 경로).
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
     },
   },
   prettier,
