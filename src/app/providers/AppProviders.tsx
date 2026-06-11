@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { PWABadge } from '@/widgets/pwa-badge';
 import { ThemeProvider, useThemeStore } from '@/features/theme';
+import { ErrorFallback } from '@/shared/ui/ErrorFallback';
 import { Toaster } from '@/shared/ui/sonner';
 
 import { QueryProvider } from './QueryProvider';
@@ -15,7 +17,7 @@ const ThemedToaster = () => {
 export const AppProviders = ({ children }: { children: ReactNode }) => (
   <QueryProvider>
     <ThemeProvider>
-      {children}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
       <ThemedToaster />
       <PWABadge />
     </ThemeProvider>
