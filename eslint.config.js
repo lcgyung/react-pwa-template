@@ -23,6 +23,8 @@ export default tseslint.config(
       'test-results',
       '.lighthouseci',
       'public/mockServiceWorker.js',
+      // orval 생성물 — import 정렬·네이밍 규칙 비대상.
+      'src/shared/api/generated',
     ],
   },
   {

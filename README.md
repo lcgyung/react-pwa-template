@@ -4,7 +4,7 @@ React + TypeScript + Vite 기반 PWA 템플릿. Shadcn/UI, React Query, Zustand,
 
 ## Stack
 
-React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · React Router · React Query · Axios · Zustand · React Hook Form · Zod · Dayjs · MSW · Vitest · Playwright · ESLint · Prettier · Husky · Storybook
+React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · React Router · React Query · Axios · orval · Zustand · React Hook Form · Zod · Dayjs · MSW · Vitest · Playwright · ESLint · Prettier · Husky · Storybook
 
 ## Features
 
@@ -22,7 +22,7 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - Vitest + Testing Library · Playwright E2E (로그인 스모크 · 오프라인 시나리오)
 - ESLint + Prettier + Husky + Lint-Staged
 - Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · CodeQL · gitleaks · SCA · Lighthouse · E2E) · Dependabot
-- 보안: CSP·보안 헤더(nginx) · CodeQL SAST · SCA(`pnpm audit` + osv) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
+- 보안: CSP·보안 헤더(nginx) · CodeQL SAST · SCA(`pnpm audit` + osv) · SBOM(CycloneDX) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
 
 ## Quick Start
 
@@ -58,6 +58,7 @@ pnpm build:analyze    # 번들 분석 리포트 생성 (dist/stats.html)
 pnpm preview          # 빌드 미리보기 (PWA 동작 확인)
 pnpm lint             # 린트
 pnpm lint:fsd         # FSD 레이어 경계 검사 (Steiger)
+pnpm gen:api          # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval)
 pnpm test             # 단위/컴포넌트 테스트 (Vitest)
 pnpm test:e2e         # E2E 테스트 (Playwright — build+preview 위에서 실행)
 pnpm storybook        # Storybook (port 6006)
@@ -118,6 +119,12 @@ export const getUsers = async () => {
 요청·응답 인터셉터로 토큰 주입과 401 리다이렉트를 처리합니다(인증 헬퍼는
 `src/app/config/configureAxios.ts`에서 주입). 컴포넌트는 axios를 직접 호출하지 않고
 각 feature 의 React Query 훅(`@/features/auth`, `@/features/users`)을 거칩니다.
+
+API DTO 타입은 샘플 OpenAPI 스펙([`openapi/pwa-api.yaml`](openapi/pwa-api.yaml))에서 **orval**
+(`pnpm gen:api`)이 생성하며 `src/shared/api/generated`에 커밋합니다. 생성 타입은 `@/shared/api`
+배럴로 재노출해 소비하고(수동 타이핑 금지), 도메인 모델 단일 출처는 `entities/user`로 유지합니다.
+생성 클라이언트(react-query 훅·MSW 목)는 기존 수동 훅과 충돌해 끄둡니다. 설계 배경은
+[`docs/adr/0006`](docs/adr/0006-api-types-orval.md). 실제 백엔드 연동 시 스펙을 교체하고 재생성하세요.
 
 ## Roadmap
 

@@ -123,6 +123,8 @@ export default defineConfig({
         'src/main.tsx',
         'src/vite-env.d.ts',
         'src/**/*.d.ts',
+        // orval 생성물 — 커버리지 측정 비대상(생성 클라이언트는 미소비).
+        'src/shared/api/generated/**',
         // 설치 프롬프트 UI 는 브라우저 beforeinstallprompt 에 의존 — 훅(useInstallPrompt)만 테스트한다.
         'src/features/pwa-install/ui/**',
       ],

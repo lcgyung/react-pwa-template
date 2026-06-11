@@ -24,6 +24,7 @@ pnpm preview                     # 빌드 산출물 미리보기 — PWA 검증�
 pnpm lint                        # eslint .
 pnpm lint:fsd                    # FSD 레이어 경계 검사 (Steiger) — 위반 시 CI/게이트 하드 실패
 pnpm format                      # prettier --write .
+pnpm gen:api                     # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval, 생성물 커밋)
 
 pnpm test                        # 단위/컴포넌트 테스트 (vitest run, jsdom)
 pnpm test:watch                  # watch 모드
@@ -126,6 +127,12 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   };
   ```
 
+- **API DTO 타입(orval)**: 응답/요청 DTO 는 손으로 타이핑하지 말고 샘플 OpenAPI 스펙
+  (`openapi/pwa-api.yaml`)에서 `pnpm gen:api`(orval)로 생성한다. 생성물(`src/shared/api/generated`)은
+  **커밋**하며 lint/prettier/steiger 대상에서 제외된다. 생성 DTO(`LoginRequest/LoginResponse/ApiError`)는
+  `@/shared/api` 배럴로 재노출해 소비하고, **도메인 모델 단일 출처는 `entities/user`** 다(생성 `User`/`Role`
+  과 구조 동일). 생성 클라이언트(`getPwaApi`)·react-query 훅·MSW 목은 기존 수동 훅과 충돌하므로 끄둔다.
+  스키마 폴더는 FSD 예약어 회피를 위해 `model` 이 아니라 `schemas`. 배경: [`docs/adr/0006`](docs/adr/0006-api-types-orval.md).
 - **⚠️ axios 인증 브리지(옵션 B)**: `shared/api/axiosInstance` 는 도메인 의존성이 0이며,
   토큰 getter·401 핸들러는 `src/app/config/configureAxios.ts` 가 `configureAuthBridge()` 로
   주입합니다(`app/App.tsx` 최상단 side-effect import). **이 import 를 제거하면 타입 에러 없이
@@ -220,7 +227,7 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **정적 분석**: `eslint-plugin-no-unsanitized`(XSS 싱크, error) + `eslint-plugin-security`
   (휴리스틱, warn) + CodeQL SAST(`.github/workflows/codeql.yml`).
 - **공급망**: gitleaks(커밋 + pre-commit) · `pnpm audit --audit-level high --prod` + osv-scanner ·
-  dist 번들 시크릿 grep · Dependabot · `--frozen-lockfile`.
+  SBOM(CycloneDX, `cdxgen` — `sca` 잡, 비차단·아티팩트) · dist 번들 시크릿 grep · Dependabot · `--frozen-lockfile`.
 - **헤더/CSP**: `nginx.conf` 가 CSP(서비스 워커 호환) + frame-ancestors/XFO/Referrer-Policy/
   Permissions-Policy 를 싣는다. `style-src 'unsafe-inline'` 트레이드오프·수동 검증법은
   [`docs/adr/0005`](docs/adr/0005-csp-and-security-headers.md).
