@@ -16,15 +16,21 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 
 // https://vite.dev/config/
 export default defineConfig({
-  // 프로덕션 빌드(minify)에서만 console.log/info/debug 를 제거한다. console.error/warn 은 보존
-  // — main.tsx 의 MSW 초기화 실패 로그(console.error)가 살아 있어야 한다. pure 는 minify 시에만
-  // 적용되므로 dev 서버 로그는 그대로 유지된다.
-  esbuild: {
-    drop: ['debugger'],
-    pure: ['console.log', 'console.info', 'console.debug'],
-  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  // 프로덕션 빌드(minify)에서만 console.log/info/debug 와 debugger 를 제거한다. console.error/warn 은
+  // 보존 — main.tsx 의 MSW 초기화 실패 로그(console.error)가 살아 있어야 한다. dev 서버 로그는 그대로.
+  // ⚠️ Vite 8 은 기본 변환/축소기가 oxc 라 (구) esbuild 의 drop/pure 옵션이 무시된다 → terser 로
+  // 축소해 pure_funcs/drop_debugger 로 동일 동작을 보존한다(terser 는 vite 의 선택적 의존).
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+    },
   },
   plugins: [
     react(),
