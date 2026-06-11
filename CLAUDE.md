@@ -7,6 +7,16 @@
 봐서는 알기 어려운 작업 규칙에 집중합니다. 형제 템플릿인 **react-admin-template** 과 동일한 톤·
 구조·도구 체계를 따르며, 차이는 UI(Shadcn/UI + Tailwind CSS v4)와 PWA(vite-plugin-pwa) 부분뿐입니다.
 
+## Node 버전
+
+이 프로젝트는 **Node 24** 를 타깃으로 합니다. 로컬은 `.nvmrc`(`24`) 기준으로 맞추고(nvm 사용 시
+`nvm use`), `package.json` 의 `engines.node` 가 `>=24` 를 강제합니다. CI(`actions/setup-node`)와
+`Dockerfile`(`node:24-alpine`)도 동일하게 Node 24 로 고정되어 있으니, 버전을 올릴 때는 이 네 곳
+(`.nvmrc` · `engines.node` · CI `node-version` · Dockerfile base 이미지)을 함께 맞추세요.
+타입 정의(`@types/node`)는 런타임 메이저를 그대로 쫓지 않고 형제 템플릿과 동일하게 성숙한
+메이저(`^22`)에 둡니다 — 갓 발행된 타입 패키지가 공급망 `minimumReleaseAge` 정책과 충돌하는 것을
+피하기 위함입니다.
+
 ## 패키지 매니저
 
 이 프로젝트는 **pnpm**(`pnpm-workspace.yaml`, `pnpm-lock.yaml` 추적)을 사용합니다. npm/yarn 대신

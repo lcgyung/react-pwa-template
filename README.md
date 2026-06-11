@@ -34,7 +34,7 @@ cp .env.example .env
 pnpm dev
 ```
 
-> 패키지 매니저는 **pnpm** 입니다.
+> 요구 사항: **Node 24+** (저장소 `.nvmrc` 기준 — nvm 사용 시 `nvm use`) · 패키지 매니저는 **pnpm 11+**.
 
 기본값(`VITE_ENABLE_MOCK=true`)으로 MSW 목 API가 켜져 있어 백엔드 없이 바로 로그인할 수 있습니다.
 
