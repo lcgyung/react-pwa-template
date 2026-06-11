@@ -20,7 +20,9 @@ UI 규약 등)은 [`CLAUDE.md`](CLAUDE.md)를 참고하세요.
 
 - `type`: `feat`(기능) · `fix`(버그) · `chore`(잡무) · `docs`(문서) · `refactor` · `test` · `build` · `ci` 등.
 - `scope`: 선택. 변경 범위(예: `auth`, `pwa`, `fsd`).
-- 예: `feat(auth): add refresh token rotation`, `chore: setup initial release v0.1.0`.
+- 예: `feat(auth): 리프레시 토큰 로테이션 추가`, `chore: v0.1.0 초기 릴리스 설정`.
+- **언어**: 타입 프리픽스(`feat`·`fix` 등)는 영문 유지, **제목(subject)·본문은 한글**로 작성
+  ([CLAUDE.md](CLAUDE.md) 출력 언어 규칙).
 
 커밋 시 Husky + lint-staged가 변경 파일에 `eslint --fix` + `prettier`를 자동 적용합니다.
 
