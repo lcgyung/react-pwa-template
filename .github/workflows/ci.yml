@@ -97,6 +97,19 @@ jobs:
           scan-args: |-
             --lockfile=pnpm-lock.yaml
 
+      # SBOM(CycloneDX) — 의존성 구성표를 생성해 아티팩트로 보관한다(보고용, 비차단).
+      # SECURITY.md §5 후속 항목. pnpm 인식 생성기 cdxgen 을 dlx 로 실행(devDep 미추가).
+      - name: Generate SBOM (CycloneDX)
+        run: pnpm dlx @cyclonedx/cdxgen@12 -t pnpm -o bom.json
+        continue-on-error: true
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: bom.json
+          if-no-files-found: warn
+
   # Lighthouse — 빌드 산출물(dist)을 정적 서빙해 a11y/best-practices/seo(0.9) 게이트.
   # 성능(performance)은 환경 편차가 커 warn 으로만 둔다. LH12 는 PWA 카테고리가 제거됨.
   lighthouse:

@@ -53,8 +53,10 @@
 
 ### 5. 후속(🟢, 향후)
 
-- 의존성 SBOM(CycloneDX) 생성 · 에러 트래킹(Sentry, PII 스크러빙) · 서드파티 스크립트 SRI ·
-  서명 커밋 · 푸시/백그라운드 동기화 보안. 도입 시 체크리스트와 본 문서를 갱신한다.
+- 에러 트래킹(Sentry, PII 스크러빙) · 서드파티 스크립트 SRI · 서명 커밋 ·
+  푸시/백그라운드 동기화 보안. 도입 시 체크리스트와 본 문서를 갱신한다.
+- 의존성 SBOM(CycloneDX)은 CI(`sca` 잡)가 매 실행 `cdxgen` 으로 생성해 `sbom-cyclonedx`
+  아티팩트로 보관한다(비차단·보고용, 도입 완료).
 
 ## 취약점 신고 (Reporting a Vulnerability)
 
