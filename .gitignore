@@ -13,6 +13,7 @@ dist-ssr
 dev-dist
 storybook-static
 coverage
+.lighthouseci
 *.tsbuildinfo
 *.local
 

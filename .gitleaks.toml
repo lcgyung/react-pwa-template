@@ -1,0 +1,11 @@
+# gitleaks 설정 — 기본 룰셋을 확장하고, 시크릿이 아닌 예시 파일만 allowlist 한다.
+title = "react-pwa-template gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "플레이스홀더만 담긴 예시 파일 — 실제 비밀값 아님"
+paths = [
+  '''\.env\.example$''',
+]

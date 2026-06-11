@@ -36,3 +36,43 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # 시크릿 스캔 — 전체 히스토리(fetch-depth: 0)를 훑어 커밋된 비밀값을 탐지한다.
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Lighthouse — 빌드 산출물(dist)을 정적 서빙해 a11y/best-practices/seo(0.9) 게이트.
+  # 성능(performance)은 환경 편차가 커 warn 으로만 둔다. LH12 는 PWA 카테고리가 제거됨.
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: pnpm exec lhci autorun
