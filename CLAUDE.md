@@ -211,11 +211,34 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 상향(ratchet 베이스라인·
   CI 강제는 도입 완료 — 테스트 추가하며 점진 상향).
 
+## 보안
+
+시큐어 코딩 하네스([`docs/secure-harness-react-shadcn-pwa.md`](docs/secure-harness-react-shadcn-pwa.md))
+기준으로 프론트 단독 가능 항목을 자동화한다. 위협 모델·의도된 트레이드오프·취약점 신고는
+[`SECURITY.md`](SECURITY.md) 참고.
+
+- **정적 분석**: `eslint-plugin-no-unsanitized`(XSS 싱크, error) + `eslint-plugin-security`
+  (휴리스틱, warn) + CodeQL SAST(`.github/workflows/codeql.yml`).
+- **공급망**: gitleaks(커밋 + pre-commit) · `pnpm audit --audit-level high --prod` + osv-scanner ·
+  dist 번들 시크릿 grep · Dependabot · `--frozen-lockfile`.
+- **헤더/CSP**: `nginx.conf` 가 CSP(서비스 워커 호환) + frame-ancestors/XFO/Referrer-Policy/
+  Permissions-Policy 를 싣는다. `style-src 'unsafe-inline'` 트레이드오프·수동 검증법은
+  [`docs/adr/0005`](docs/adr/0005-csp-and-security-headers.md).
+- **토큰/세션**: 토큰은 localStorage(의도된 선택 — 프로덕션은 httpOnly 쿠키 권장, 백엔드 필요).
+  로그아웃 시 `clearOfflineStorage`(`@/shared/lib/clearOfflineStorage`)가 토큰·React Query 캐시에
+  더해 교차출처 런타임 캐시·IndexedDB 까지 정리한다.
+- **빌드**: 프로덕션 minify 에서 `console.log/info/debug`·`debugger` 제거(`console.error` 보존).
+- ⚠️ **배포 전 `.env.production` 의 `VITE_ENABLE_MOCK=false`** — 기본값(true)으로 빌드하면 MSW 목
+  인증(데모 계정)이 프로덕션 번들에 포함된다(SECURITY.md §3).
+
 ## 배포 (인프라)
 
 `Dockerfile`(빌드 → `nginx:1.27` 서빙) + `nginx.conf`(SPA fallback, 정적 에셋 캐싱, 서비스 워커
-no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows/ci.yml`(lint → lint:fsd →
-test(coverage 임계값) → build).
+no-cache, **보안 헤더 CSP/XFO/Referrer-Policy/Permissions-Policy** — ADR-0005)로 프로덕션 컨테이너를
+구성한다. CI는 `.github/workflows/ci.yml`의 `build`(lint → lint:fsd → test(coverage 임계값) → build
+
+- dist 시크릿 스캔)와 병렬 보안 잡 `gitleaks`·`sca`(pnpm audit + osv)·`lighthouse`·`e2e`, 그리고
+  별도 `.github/workflows/codeql.yml`(SAST)로 구성된다.
 
 ## 로드맵
 

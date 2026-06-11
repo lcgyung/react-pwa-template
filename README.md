@@ -21,7 +21,8 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - 환경 변수 검증 (Zod, 부팅 시 조기 실패)
 - Vitest + Testing Library · Playwright E2E (로그인 스모크 · 오프라인 시나리오)
 - ESLint + Prettier + Husky + Lint-Staged
-- Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · gitleaks · Lighthouse · E2E) · Dependabot
+- Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · CodeQL · gitleaks · SCA · Lighthouse · E2E) · Dependabot
+- 보안: CSP·보안 헤더(nginx) · CodeQL SAST · SCA(`pnpm audit` + osv) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
 
 ## Quick Start
 
@@ -127,9 +128,10 @@ admin 수준 보일러플레이트(스캐폴딩 · PWA · UI · 데이터 레이
 ## Contributing
 
 브랜치 전략·커밋 컨벤션(Conventional Commits)·버전 규칙(SemVer)은 [`CONTRIBUTING.md`](CONTRIBUTING.md),
-변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)를 참고하세요. 주요 설계 결정은
-[`docs/adr/`](docs/adr), 사용 중인 Shadcn 컴포넌트 목록·갱신 절차는
-[`docs/shadcn-components.md`](docs/shadcn-components.md)에 정리돼 있습니다.
+보안 정책·위협 모델·취약점 신고는 [`SECURITY.md`](SECURITY.md), 변경 이력은
+[`CHANGELOG.md`](CHANGELOG.md)를 참고하세요. 주요 설계 결정은 [`docs/adr/`](docs/adr), 사용 중인
+Shadcn 컴포넌트 목록·갱신 절차는 [`docs/shadcn-components.md`](docs/shadcn-components.md)에 정리돼
+있습니다.
 
 ## License
 
