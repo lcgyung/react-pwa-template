@@ -24,3 +24,5 @@
   `e2e/offline.spec.ts`(Playwright)가 회귀 검사한다.
 - 메모: Lighthouse 12 부터 **PWA 카테고리가 제거**되어 LHCI 어서션에는 PWA 점수가 없다. 설치
   가능성·SW 동작은 E2E 와 DevTools(Application 탭)로 확인한다.
+- API 를 캐시하지 않는 대신 **앱 데이터의 오프라인 연계는 React Query persist 가 담당**한다 —
+  [ADR-0007](0007-react-query-offline-persist.md).

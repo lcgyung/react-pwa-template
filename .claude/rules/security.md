@@ -25,7 +25,8 @@ paths:
 - **토큰 저장** — 토큰은 localStorage(의도된 선택 — 프로덕션은 httpOnly 쿠키 권장, 백엔드 필요).
   트레이드오프는 [ADR 0004](../../docs/adr/0004-auth-token-storage.md) 참고. 로그아웃 시
   `clearOfflineStorage`(`@/shared/lib/clearOfflineStorage`)가 토큰·React Query 캐시에 더해 교차출처
-  런타임 캐시·IndexedDB까지 정리한다(PWA 오프라인 캐시 잔존 방지).
+  런타임 캐시·IndexedDB·RQ persist 캐시(`storageKeys.queryCache`,
+  [ADR 0007](../../docs/adr/0007-react-query-offline-persist.md))까지 정리한다(PWA 오프라인 캐시 잔존 방지).
 - **빌드 위생** — 프로덕션 minify에서 `console.log/info/debug`·`debugger`를 제거한다
   (`console.error` 보존). ⚠️ 배포 전 `.env.production`의 `VITE_ENABLE_MOCK=false` — 기본값(true)으로
   빌드하면 MSW 목 인증(데모 계정)이 프로덕션 번들에 포함된다.

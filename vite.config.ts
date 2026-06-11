@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -7,6 +8,11 @@ import { configDefaults, defineConfig } from 'vitest/config';
 
 // ANALYZE=true 일 때만 번들 분석 리포트(dist/stats.html)를 생성한다(기본 build 는 불변).
 const analyze = process.env.ANALYZE === 'true';
+
+// RQ persist buster 용 앱 버전 — 배포 버전이 바뀌면 오프라인 쿼리 캐시를 자동 무효화한다(ADR-0007).
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as {
+  version: string;
+};
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,6 +22,9 @@ export default defineConfig({
   esbuild: {
     drop: ['debugger'],
     pure: ['console.log', 'console.info', 'console.debug'],
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [
     react(),
@@ -128,13 +137,13 @@ export default defineConfig({
         // 설치 프롬프트 UI 는 브라우저 beforeinstallprompt 에 의존 — 훅(useInstallPrompt)만 테스트한다.
         'src/features/pwa-install/ui/**',
       ],
-      // ratchet 베이스라인(현재 stmts/lines 28%·branch 68%·funcs 55%): 바로 아래로 고정하고
+      // ratchet 베이스라인(현재 stmts/lines 33%·branch 74%·funcs 66%): 바로 아래로 고정하고
       // PR 마다 점진 상향한다. 미달 시 vitest 가 non-zero 로 종료 → CI 실패.
       thresholds: {
-        lines: 25,
-        statements: 25,
-        functions: 50,
-        branches: 60,
+        lines: 30,
+        statements: 30,
+        functions: 60,
+        branches: 70,
       },
     },
   },

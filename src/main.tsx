@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from '@/app/App';
 import { env } from '@/shared/config';
+import { reportWebVitals } from '@/shared/lib/reportWebVitals';
 
 // VITE_ENABLE_MOCK=true 일 때만 MSW 목 서버를 기동한다.
 async function enableMocking() {
@@ -29,4 +30,7 @@ enableMocking()
         <App />
       </StrictMode>,
     );
+
+    // Core Web Vitals 수집(옵트인, 비차단) — 설정/동작은 shared/lib/reportWebVitals 참고.
+    void reportWebVitals();
   });

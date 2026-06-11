@@ -42,7 +42,9 @@ pnpm test:watch                  # watch 모드
 pnpm exec vitest run src/app/router/guards.test.tsx   # 단일 파일
 pnpm exec vitest run -t "redirects to /login"         # 테스트명(-t)으로 단일 케이스
 
-pnpm exec tsc -b --noEmit        # 타입체크 단독 (project references; Stop 게이트가 사용)
+pnpm typecheck                   # 타입체크 단독 (tsc -b --noEmit, project references)
+pnpm verify                      # typecheck + lint + format:check + test + lint:fsd (빌드 제외 고속 일괄 검증)
+pnpm verify:full                 # verify + build — 체크리스트의 "단일 명령" 전체 게이트
 
 pnpm storybook                   # Storybook (6006)
 pnpm build-storybook             # 정적 Storybook 빌드
@@ -59,7 +61,7 @@ pnpm build-storybook             # 정적 Storybook 빌드
 ```text
 src
 ├── app                       # 앱 전역 설정 (레이어=슬라이스, 세그먼트만 둠)
-│   ├── providers/            #   AppProviders(+ThemedToaster/PWABadge 마운트), QueryProvider
+│   ├── providers/            #   AppProviders(+ThemedToaster/PWABadge 마운트), QueryProvider(+queryPersist)
 │   ├── router/               #   router.tsx + ProtectedRoute/RoleRoute 가드 (+ guards.test)
 │   ├── mocks/                #   MSW handlers/data/browser/server
 │   ├── styles/               #   index.css — Tailwind v4 엔트리 + Shadcn 테마(CSS 변수)
@@ -81,8 +83,8 @@ src
 ├── shared                    # 도메인 무관 인프라 (레이어=슬라이스)
 │   ├── api/                  #   axiosInstance(+configureAuthBridge), 공용 API 타입
 │   ├── ui/                   #   Shadcn 프리미티브(평면 파일) + Loading/PageHeader/StatCard(폴더)
-│   ├── lib/                  #   cn.ts, format.ts
-│   └── config/               #   paths.ts (라우트 경로 상수)
+│   ├── lib/                  #   cn.ts, format.ts, clearOfflineStorage, reportWebVitals
+│   └── config/               #   paths.ts (라우트 경로 상수), env.ts(zod 검증), storage.ts(localStorage 키)
 ├── main.tsx                  # 루트 유지 — index.html 진입점
 └── vite-env.d.ts             # 루트 유지 — ambient 타입(PWA client 포함)
 ```
@@ -131,6 +133,13 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 
 - **서버 상태** → React Query. 컴포넌트에서 직접 `axios`를 호출하지 말고 각 feature 의
   React Query 훅(`@/features/auth`, `@/features/users` — `model` 세그먼트)을 거칩니다.
+- **오프라인 persist(RQ)**: 쿼리 캐시는 `PersistQueryClientProvider` 가 localStorage
+  (`storageKeys.queryCache`, `@/shared/config`)에 persist 합니다 — 설정은
+  `app/providers/queryPersist.ts`, 배경은 [`docs/adr/0007`](docs/adr/0007-react-query-offline-persist.md).
+  성공 쿼리만 보존하며, 세션 의존 쿼리는 `meta: { persist: false }` 로 옵트아웃합니다(`useMe` 참고).
+  ⚠️ `gcTime`(QueryProvider, 24h)은 persist `maxAge`(24h) 이상이어야 합니다 — 기본 5분으로 줄이면
+  dehydrate 대상에서 빠져 persist 가 조용히 무력화됩니다. buster 는 `__APP_VERSION__`
+  (vite define, package.json version)이라 배포 버전이 바뀌면 구 캐시가 자동 무효화됩니다.
 - **API 호출** → 각 feature 의 `api` 세그먼트(`features/*/api/*Api.ts`)에 Axios 함수로 정의.
   `@/shared/api` 의 `axiosInstance`가 요청 인터셉터로 토큰을 주입하고, 응답 인터셉터로
   401 시 인증 상태를 초기화하고 `/login`으로 보냅니다.
@@ -189,6 +198,11 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   알림과 오프라인 준비 안내를 처리합니다. `AppProviders` 에서 마운트됩니다.
 - **에셋**: 매니페스트 아이콘/테마 색상은 `public/`의 192/512px(및 maskable) 에셋을 교체해
   커스터마이즈합니다(`scripts/gen-icons.mjs` 로 재생성 가능).
+- **앱 데이터 오프라인**: SW 는 `/api` 를 캐시하지 않으므로(ADR-0003) 앱 데이터의 오프라인 연계는
+  React Query persist 가 담당합니다(위 "아키텍처" 절, ADR-0007).
+- **관찰가능성(web-vitals, 옵트인)**: `shared/lib/reportWebVitals`(main.tsx 에서 호출)가
+  `VITE_WEB_VITALS_ENDPOINT` 설정 시 CWV(CLS/FCP/INP/LCP/TTFB)를 sendBeacon 으로 전송합니다.
+  미설정이면 dev 콘솔 로그만 남기며, web-vitals 는 동적 import 라 메인 번들에 포함되지 않습니다.
 
 ## 코드 컨벤션
 
@@ -236,9 +250,10 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard` 등)을 차단.
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(변경 `*.ts(x)` 에 `eslint --fix` + `prettier`,
   Tailwind 클래스 정렬 포함) + `check-pwa.sh`(매니페스트/SW 설정 검증).
-- **Stop** → `gate.sh`: 세션 종료 전 `tsc -b --noEmit` + `eslint .` + `prettier --check .` +
-  `vitest run` + `pnpm lint:fsd`(Steiger) 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
-  `stop_hook_active` 무한루프 가드와 `cd "$CLAUDE_PROJECT_DIR"` cwd 가드 포함.
+- **Stop** → `gate.sh`: 세션 종료 전 `pnpm typecheck` + `pnpm lint` + `pnpm format:check` +
+  `vitest run` + `pnpm lint:fsd`(Steiger) 게이트 — `pnpm verify` 와 동일 단계(정본은 package.json
+  scripts)지만, && 체인 대신 전 단계를 실행해 에러를 집계한다. 실패하면 `exit 2` 로 계속 수정을
+  유도한다. `stop_hook_active` 무한루프 가드와 `cd "$CLAUDE_PROJECT_DIR"` cwd 가드 포함.
 - `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`(FSD 경계 점검 포함)가 함께 제공된다.
 - **슬라이스 스캐폴딩** → `pnpm gen:slice`(plop, `plopfile.mjs` + `tools/templates/slice/**`)가
   features/entities 골격을 `slice-blueprint` 정본대로 생성한다(생성물 자동 포맷).
@@ -261,7 +276,7 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   [`docs/adr/0005`](docs/adr/0005-csp-and-security-headers.md).
 - **토큰/세션**: 토큰은 localStorage(의도된 선택 — 프로덕션은 httpOnly 쿠키 권장, 백엔드 필요).
   로그아웃 시 `clearOfflineStorage`(`@/shared/lib/clearOfflineStorage`)가 토큰·React Query 캐시에
-  더해 교차출처 런타임 캐시·IndexedDB 까지 정리한다.
+  더해 교차출처 런타임 캐시·IndexedDB·RQ persist 캐시(`storageKeys.queryCache`, ADR-0007)까지 정리한다.
 - **빌드**: 프로덕션 minify 에서 `console.log/info/debug`·`debugger` 제거(`console.error` 보존).
 - ⚠️ **배포 전 `.env.production` 의 `VITE_ENABLE_MOCK=false`** — 기본값(true)으로 빌드하면 MSW 목
   인증(데모 계정)이 프로덕션 번들에 포함된다(SECURITY.md §3).
@@ -279,4 +294,7 @@ no-cache, **보안 헤더 CSP/XFO/Referrer-Policy/Permissions-Policy** — ADR-0
 - [x] **admin 수준 보일러플레이트 도달** — 스캐폴딩 · PWA 코어 · UI(Shadcn/Tailwind) · 데이터 레이어 ·
       인증/RBAC · MSW · 테스트 · 인프라(Storybook/Docker/CI) 구현 완료.
 - [x] **FSD 마이그레이션** — 6레이어 재배치 + Steiger 하드 강제 + 게이트 강화 완료.
+- [x] **하네스 체크리스트 갭 보완** — `pnpm verify` 단일 검증 명령 · RQ 오프라인 persist(ADR-0007) ·
+      web-vitals 옵트인 수집 · [`docs/harness-react-shadcn-pwa.md`](docs/harness-react-shadcn-pwa.md)
+      현행화 완료(잔여: Sentry 🟡 백로그).
 - [ ] **파리티 이후** — Push Notification · Offline Data Sync · i18n · Social Login.

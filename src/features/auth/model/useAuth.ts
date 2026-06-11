@@ -53,5 +53,7 @@ export const useMe = () => {
     queryKey: authKeys.me,
     queryFn: getMe,
     enabled: Boolean(token),
+    // 세션 의존 데이터는 오프라인 persist 에서 제외 — 항상 신선하게 조회(app/providers/queryPersist 컨벤션).
+    meta: { persist: false },
   });
 };

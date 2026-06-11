@@ -7,6 +7,7 @@ describe('env', () => {
     const result = envSchema.parse({});
     expect(result.VITE_API_BASE_URL).toBe('');
     expect(result.VITE_ENABLE_MOCK).toBe('false');
+    expect(result.VITE_WEB_VITALS_ENDPOINT).toBe('');
   });
 
   it('유효한 값을 그대로 통과시키고 알려지지 않은 키는 무시한다', () => {

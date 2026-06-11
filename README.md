@@ -61,6 +61,8 @@ pnpm lint:fsd         # FSD 레이어 경계 검사 (Steiger)
 pnpm gen:api          # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval)
 pnpm test             # 단위/컴포넌트 테스트 (Vitest)
 pnpm test:e2e         # E2E 테스트 (Playwright — build+preview 위에서 실행)
+pnpm verify           # typecheck + lint + format:check + test + lint:fsd 일괄 검증
+pnpm verify:full      # verify + build (전체 게이트)
 pnpm storybook        # Storybook (port 6006)
 ```
 
@@ -69,6 +71,7 @@ pnpm storybook        # Storybook (port 6006)
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 VITE_ENABLE_MOCK=true   # MSW 목 API. 실제 백엔드 연동 시 false
+# VITE_WEB_VITALS_ENDPOINT=   # (옵트인) Core Web Vitals 전송 엔드포인트 — 비우면 미전송
 ```
 
 `.env.development` / `.env.production`으로 모드별 분리. 값은 `.env.example` 참고. 환경 변수는 부팅

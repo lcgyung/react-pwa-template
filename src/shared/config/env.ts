@@ -7,6 +7,8 @@ export const envSchema = z.object({
   VITE_API_BASE_URL: z.string().default(''),
   // MSW 목 API 활성화 여부. 'true' 일 때만 워커를 기동한다(main.tsx).
   VITE_ENABLE_MOCK: z.enum(['true', 'false']).default('false'),
+  // web-vitals 전송 엔드포인트(옵트인) — 빈 문자열이면 전송하지 않는다(dev 에선 콘솔 로그만).
+  VITE_WEB_VITALS_ENDPOINT: z.string().default(''),
 });
 
 export type Env = z.infer<typeof envSchema>;

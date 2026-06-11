@@ -25,6 +25,10 @@ paths:
 - **서버 상태** → React Query. 컴포넌트에서 직접 `axios`를 호출하지 말고 `features/*`의
   React Query 훅(`useAuth`, `useUsers`)을 거친다. `no-restricted-imports`가 `api/` 세그먼트 밖에서
   `axiosInstance` import를 **error로 차단**한다.
+- **오프라인 persist(RQ)** — 쿼리 캐시는 `app/providers/queryPersist.ts`가 localStorage에 persist
+  한다([ADR 0007](../../docs/adr/0007-react-query-offline-persist.md)). 세션 의존 쿼리는
+  `meta: { persist: false }`로 옵트아웃(`useMe` 참고). `gcTime`(24h)은 persist `maxAge` 이상 유지
+  — 줄이면 dehydrate 대상에서 빠져 persist가 조용히 무력화된다.
 - **API 호출** → `features/*/api`의 Axios 레이어 함수로 정의(슬라이스 내부용, 배럴 미노출).
   `shared/api`의 `axiosInstance`가 요청 인터셉터로 토큰을 주입하고, 응답 인터셉터로 401 시
   인증 상태를 초기화하고 `/login`으로 보낸다.
