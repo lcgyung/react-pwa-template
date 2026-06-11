@@ -12,6 +12,12 @@ Tailwind CSS v4)와 PWA(vite-plugin-pwa) 부분뿐입니다.
 `code-style` · `testing` · `security` · `slice-blueprint`), 결정 배경은 [`docs/adr/`](docs/adr/),
 현행 점검표는 `docs/harness-*.md`. **같은 내용을 여러 문서에 중복 기술하지 말고 링크로 대체할 것.**
 
+## 출력 언어 (한글 통일)
+
+Claude Code 의 모든 **응답·커밋 메시지·PR(제목·본문)** 은 한글로 작성한다. 한영 혼용을 피하고
+한글로 통일한다. 단, **코드 식별자·타입·로그 문자열 등 코드 자체**와 **Conventional Commits 타입
+프리픽스(`feat:`·`fix:` 등)**, 외부 고유명사·기술 용어는 원문(영문) 그대로 둔다.
+
 ## Node 버전 / 패키지 매니저
 
 - **Node 24** 타깃. 버전을 올릴 때는 네 곳을 함께 맞춘다: `.nvmrc` · `package.json` `engines.node` ·
