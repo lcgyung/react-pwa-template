@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
+import betterTailwind from 'eslint-plugin-better-tailwindcss';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -105,5 +106,26 @@ export default tseslint.config(
     },
   },
   ...storybook.configs['flat/recommended'],
+  {
+    // Tailwind 클래스 점검(better-tailwindcss) — 전 룰 warn(게이트에 --max-warnings 없음).
+    // 정렬/줄바꿈은 prettier-plugin-tailwindcss 가 담당하므로 중복되는 포매팅 룰은 끈다.
+    files: ['**/*.{ts,tsx}'],
+    plugins: { 'better-tailwindcss': betterTailwind },
+    settings: {
+      // Tailwind v4 는 CSS-first — 테마/커스텀 유틸을 해석하도록 CSS 엔트리를 지정한다.
+      'better-tailwindcss': { entryPoint: 'src/app/styles/index.css' },
+    },
+    rules: {
+      ...betterTailwind.configs['recommended-warn'].rules,
+      // 정렬/줄바꿈은 prettier-plugin-tailwindcss 가 담당 → 중복되는 포매팅 룰을 끈다.
+      'better-tailwindcss/enforce-consistent-class-order': 'off',
+      'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
+      // 정규 클래스 권고(예: data-[disabled]→data-disabled, px-4 py-4→p-4)는 의견이 강하고
+      // shadcn 프리미티브의 업스트림 표기와 충돌한다(원본 과수정 지양) → 끈다.
+      'better-tailwindcss/enforce-canonical-classes': 'off',
+      // 임의값·shadcn/sonner 커스텀 클래스에서 false positive 가 잦아 끈다(오타 방지 가치 < 노이즈).
+      'better-tailwindcss/no-unknown-classes': 'off',
+    },
+  },
   prettier,
 );
