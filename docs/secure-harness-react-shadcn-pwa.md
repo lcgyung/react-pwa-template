@@ -13,7 +13,7 @@
 ## 0. 보안 자동화 기반
 
 - [x] 🔴 `eslint-plugin-security` + `eslint-plugin-no-unsanitized` + `eslint-plugin-react`
-- [x] 🔴 SAST — Semgrep / CodeQL CI 게이트 _(CodeQL, `.github/workflows/codeql.yml`)_
+- [ ] 🔴 SAST — Semgrep / CodeQL CI 게이트 _(private 개인 저장소는 GHAS 미제공으로 CodeQL 미적용 — 공개 전환 또는 GHAS 필요. 워크플로 제거됨)_
 - [x] 🔴 시크릿 스캔 — gitleaks (pre-commit + CI)
 - [x] 🔴 SCA — `pnpm audit` / osv-scanner / Socket(공급망) _(audit high+ 차단 + osv 보고)_
 - [x] 🔴 lockfile 커밋 + `--frozen-lockfile`
@@ -75,7 +75,7 @@
 
 ## 8. CI/CD 보안 게이트
 
-- [x] 🔴 PR 게이트 — lint(security) · SAST · 시크릿 · SCA
+- [x] 🔴 PR 게이트 — lint(security) · 시크릿 · SCA _(SAST/CodeQL 은 GHAS 미제공으로 제외)_
 - [ ] 🔴 브랜치 보호 + 필수 리뷰 _(CONTRIBUTING 문서화 — GitHub 저장소 설정 필요)_
 - [x] 🟡 Lighthouse "Best Practices"(HTTPS·취약 라이브러리) 임계값 게이트 _(0.9 error)_
 - [ ] 🟡 에러 트래킹 (Sentry) — PII 스크러빙 _(후속 — SECURITY.md §5)_

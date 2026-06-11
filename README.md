@@ -21,8 +21,8 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - 환경 변수 검증 (Zod, 부팅 시 조기 실패)
 - Vitest + Testing Library · Playwright E2E (로그인 스모크 · 오프라인 시나리오)
 - ESLint + Prettier + Husky + Lint-Staged
-- Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · CodeQL · gitleaks · SCA · Lighthouse · E2E) · Dependabot
-- 보안: CSP·보안 헤더(nginx) · CodeQL SAST · SCA(`pnpm audit` + osv) · SBOM(CycloneDX) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
+- Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · gitleaks · SCA · Lighthouse · E2E) · Dependabot
+- 보안: CSP·보안 헤더(nginx) · SCA(`pnpm audit` + osv) · SBOM(CycloneDX) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
 
 ## Quick Start
 

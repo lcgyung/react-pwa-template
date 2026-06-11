@@ -225,7 +225,8 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 [`SECURITY.md`](SECURITY.md) 참고.
 
 - **정적 분석**: `eslint-plugin-no-unsanitized`(XSS 싱크, error) + `eslint-plugin-security`
-  (휴리스틱, warn) + CodeQL SAST(`.github/workflows/codeql.yml`).
+  (휴리스틱, warn). (CodeQL SAST 는 private 개인 저장소에서 GHAS 미제공으로 미적용 — 공개 전환 또는
+  GHAS 필요. 워크플로 제거됨.)
 - **공급망**: gitleaks(커밋 + pre-commit) · `pnpm audit --audit-level high --prod` + osv-scanner ·
   SBOM(CycloneDX, `cdxgen` — `sca` 잡, 비차단·아티팩트) · dist 번들 시크릿 grep · Dependabot · `--frozen-lockfile`.
 - **헤더/CSP**: `nginx.conf` 가 CSP(서비스 워커 호환) + frame-ancestors/XFO/Referrer-Policy/
@@ -244,8 +245,7 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 no-cache, **보안 헤더 CSP/XFO/Referrer-Policy/Permissions-Policy** — ADR-0005)로 프로덕션 컨테이너를
 구성한다. CI는 `.github/workflows/ci.yml`의 `build`(lint → lint:fsd → test(coverage 임계값) → build
 
-- dist 시크릿 스캔)와 병렬 보안 잡 `gitleaks`·`sca`(pnpm audit + osv)·`lighthouse`·`e2e`, 그리고
-  별도 `.github/workflows/codeql.yml`(SAST)로 구성된다.
+- dist 시크릿 스캔)와 병렬 보안 잡 `gitleaks`·`sca`(pnpm audit + osv)·`lighthouse`·`e2e`로 구성된다.
 
 ## 로드맵
 

@@ -90,8 +90,9 @@ jobs:
         run: pnpm audit --audit-level high --prod
 
       # OSV 교차검증 — advisory DB 다양성. 비차단(보고용).
+      # 루트 액션은 stub(runs 없음)이고 floating v1 태그도 없어졌다 → 실행 가능한 서브경로 액션을 실태그로 핀.
       - name: osv-scanner
-        uses: google/osv-scanner-action@v1
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
         continue-on-error: true
         with:
           scan-args: |-
