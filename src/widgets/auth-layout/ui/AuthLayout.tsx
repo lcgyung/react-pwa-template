@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 import { useAuthStore } from '@/entities/session';
 import { paths } from '@/shared/config';
+import { Loading } from '@/shared/ui/Loading';
 
 export const AuthLayout = () => {
   const token = useAuthStore((s) => s.token);
@@ -13,7 +15,9 @@ export const AuthLayout = () => {
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background p-4">
-      <Outlet />
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </div>
   );
 };
