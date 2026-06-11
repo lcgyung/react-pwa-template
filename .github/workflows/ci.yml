@@ -37,6 +37,21 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # 빌드 산출물 시크릿 grep — 번들에 인라인되면 안 되는 시크릿 패턴을 검사한다.
+      # (VITE_* 사고 등). 매칭이 있으면 비정상 → 빌드 실패. 의존성 없는 휴리스틱.
+      - name: Scan dist bundle for leaked secrets
+        run: |
+          if grep -rIEn \
+            -e 'sk_live_[0-9a-zA-Z]+' \
+            -e 'AKIA[0-9A-Z]{16}' \
+            -e 'gh[pousr]_[0-9A-Za-z]{20,}' \
+            -e 'BEGIN [A-Z ]*PRIVATE KEY' \
+            dist; then
+            echo '::error::dist 번들에서 시크릿 의심 패턴이 발견되었습니다.'
+            exit 1
+          fi
+          echo 'dist 시크릿 스캔 통과 — 의심 패턴 없음.'
+
   # 시크릿 스캔 — 전체 히스토리(fetch-depth: 0)를 훑어 커밋된 비밀값을 탐지한다.
   gitleaks:
     runs-on: ubuntu-latest
@@ -50,6 +65,37 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # SCA — 의존성 취약점 스캔. high/critical advisory 만 빌드를 차단한다.
+  sca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # high/critical 만 차단, devDependency advisory(번들 미포함)는 --prod 로 제외.
+      - name: pnpm audit (high+, prod)
+        run: pnpm audit --audit-level high --prod
+
+      # OSV 교차검증 — advisory DB 다양성. 비차단(보고용).
+      - name: osv-scanner
+        uses: google/osv-scanner-action@v1
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --lockfile=pnpm-lock.yaml
 
   # Lighthouse — 빌드 산출물(dist)을 정적 서빙해 a11y/best-practices/seo(0.9) 게이트.
   # 성능(performance)은 환경 편차가 커 warn 으로만 둔다. LH12 는 PWA 카테고리가 제거됨.
