@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@/entities/session';
 import { paths } from '@/shared/config';
 import { clearOfflineStorage } from '@/shared/lib/clearOfflineStorage';
+import { resolveInternalRedirect } from '@/shared/lib/url';
 
 import { getMe, login, logout } from '../api/authApi';
 import type { LoginRequest } from './types';
@@ -15,12 +16,15 @@ export const authKeys = {
 export const useLogin = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
   const navigate = useNavigate();
+  const location = useLocation();
 
   return useMutation({
     mutationFn: (payload: LoginRequest) => login(payload),
     onSuccess: (data) => {
       setAuth(data.token, data.user);
-      navigate(paths.dashboard, { replace: true });
+      // ProtectedRoute 가 저장한 `from` 으로 안전 복귀(오픈 리다이렉트 방지), 없으면 대시보드.
+      const target = resolveInternalRedirect(location.state?.from, paths.dashboard);
+      navigate(target, { replace: true });
     },
   });
 };
