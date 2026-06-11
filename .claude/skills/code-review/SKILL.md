@@ -30,12 +30,11 @@ description: React + shadcn/ui + PWA 변경에 대한 리뷰 기준. Tailwind/�
 - 서비스워커 캐싱 전략이 명확하고 오프라인 fallback이 있는가.
 - 정적 자산 캐싱이 배포 시 stale 되지 않도록 버전/해시 처리하는가.
 
-## 컨벤션 일관성 (대부분 lint 자동 강제)
+## 컨벤션 일관성
 
-- import 순서가 `외부 → @/ 절대 → 상대`인가(simple-import-sort).
-- 컴포넌트가 화살표 함수 선언인가(shared/ui shadcn 프리미티브는 예외).
-- React Query 키를 하드코딩하지 않고 `<도메인>Keys` 객체로 정의했는가.
-- 커밋 메시지가 Conventional Commits(`feat:`/`fix:`/…)를 따르는가.
+- import 정렬·화살표 함수·queryKey 객체·네이밍·커밋 메시지는 lint/commitlint가 자동 강제 —
+  기준은 [`.claude/rules/code-style.md`](../../rules/code-style.md). 리뷰에서는 lint가 못 잡는
+  의미적 위반(잘못된 레이어 배치, 도메인 타입 중복 정의 등)에 집중한다.
 
 ## 일반
 

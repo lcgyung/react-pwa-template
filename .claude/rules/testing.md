@@ -13,6 +13,9 @@ paths:
 
 # 테스트 & 목 API 규칙
 
+> 강제의 정본은 `vite.config.ts`(vitest 설정·coverage 임계값) · `vitest.setup.ts` ·
+> `playwright.config.ts`다 — 이 문서는 그 해설·요약이며, 충돌 시 설정이 우선한다.
+
 ## 목 API (MSW)
 
 - `VITE_ENABLE_MOCK=true` 일 때 `src/main.tsx`가 MSW 워커를 기동한다.

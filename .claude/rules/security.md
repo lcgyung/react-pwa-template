@@ -10,8 +10,12 @@ paths:
 
 # 보안 규칙
 
-> 위협 모델·의도된 트레이드오프는 [`SECURITY.md`](../../SECURITY.md), 점검표는
-> [`docs/secure-harness-react-shadcn-pwa.md`](../../docs/secure-harness-react-shadcn-pwa.md) 참고.
+> 강제의 정본은 `eslint.config.js`(no-unsanitized/security 플러그인) · `nginx.conf`(헤더) ·
+> `.github/workflows/ci.yml`(스캔 잡)이다 — 이 문서는 그 해설·요약. 위협 모델·의도된
+> 트레이드오프는 [`SECURITY.md`](../../SECURITY.md), 현행 점검표는
+> [`docs/secure-harness-react-shadcn-pwa.md`](../../docs/secure-harness-react-shadcn-pwa.md),
+> 결정 배경은 [ADR 0004](../../docs/adr/0004-auth-token-storage.md) ·
+> [ADR 0005](../../docs/adr/0005-csp-and-security-headers.md) 참고.
 
 - **DOM XSS** — `eslint-plugin-no-unsanitized`가 `dangerouslySetInnerHTML`·`innerHTML` 등
   DOM XSS sink를 **error로 차단**한다(불가피하면 DOMPurify). `eslint-plugin-security`(휴리스틱, warn)도 켜져 있다.

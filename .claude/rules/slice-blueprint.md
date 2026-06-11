@@ -9,6 +9,10 @@ paths:
 
 # 슬라이스 파일 구현 골격 (새 슬라이스 작성 규약)
 
+> 🔒 항목의 강제 정본은 `eslint.config.js`(로컬 룰 `no-default-export`·`query-key-object`,
+> `no-restricted-imports`)와 `steiger.config.ts`다 — 충돌 시 설정이 우선한다.
+> **골격 자체의 정본은 이 문서 + `tools/templates/slice/`**(1:1 정합 유지)다.
+
 폴더/레이어 구조는 `steiger`가 강제하지만, **슬라이스 내부 파일을 어떻게 채우는가**는 아래 골격을
 정본으로 통일한다. 새 슬라이스는 **`pnpm gen:slice`** 로 생성하면 이 골격대로 스캐폴딩된다(수기
 작성 시에도 동일 골격을 따른다). `tools/templates/slice/`의 plop 템플릿은 이 문서와 1:1 정합을

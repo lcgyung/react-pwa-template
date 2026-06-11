@@ -41,3 +41,6 @@ paths:
   label/aria/role·키보드 접근 위반은 린트에서 막힌다. Radix 기반 프리미티브의 포커스·키보드 동작을 보존한다.
 - **JSDoc 범위** — JSDoc/주석은 공개 API(배럴로 노출되는 함수·훅)와 비자명한 로직·함정(gotcha)에
   한정한다(예: `shared/api/axiosInstance.ts`의 인증 브리지 주석). 자명한 컴포넌트엔 생략한다.
+- **커밋 위생(자동)** — Husky + lint-staged가 커밋 시 변경 파일에 `eslint --fix` + prettier를
+  적용하고, 커밋 메시지는 commitlint(Conventional Commits, `.husky/commit-msg`)가 검증한다 —
+  타입 프리픽스(`feat:`/`fix:`/`docs:` 등) 없으면 커밋 거부.

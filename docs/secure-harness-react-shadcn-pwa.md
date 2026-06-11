@@ -7,6 +7,9 @@
 > **구현 상태**: 프론트 단독으로 가능한 항목은 적용 완료(아래 체크). 백엔드가 필요한 항목
 > (httpOnly 쿠키·서버 검증·인증 갱신)과 후속 항목은 미체크 + 주석으로 표기하며, 배경은
 > [`SECURITY.md`](../SECURITY.md) · [`docs/adr/0005`](adr/0005-csp-and-security-headers.md) 참고.
+>
+> **이 문서는 규칙이 아니라 현행 상태 점검표입니다** — 작업 규칙은
+> [`.claude/rules/security.md`](../.claude/rules/security.md), 결정 배경은 [`docs/adr/`](adr/) 참고.
 
 ---
 
@@ -18,7 +21,7 @@
 - [x] 🔴 SCA — `pnpm audit` / osv-scanner / Socket(공급망) _(audit high+ 차단 + osv 보고)_
 - [x] 🔴 lockfile 커밋 + `--frozen-lockfile`
 - [x] 🟡 의존성 자동 업데이트 (Renovate / Dependabot)
-- [ ] 🟢 SBOM 생성 _(후속 — SECURITY.md §5)_
+- [x] 🟢 SBOM 생성 _(CycloneDX, cdxgen — CI `sca` 잡, 비차단 아티팩트)_
 
 ## 1. XSS 방지
 
@@ -70,7 +73,7 @@
 
 - [x] 🔴 오픈 리다이렉트 방지 — 대상 URL 화이트리스트 _(가드가 paths.\* 상수로만 리다이렉트)_
 - [ ] 🔴 폼 검증 클라 + **서버 양쪽** _(클라 zod 완료, 서버는 백엔드)_
-- [ ] 🟡 API 타입 자동 생성(orval) — 응답 신뢰 경계 명확화 _(후속)_
+- [x] 🟡 API 타입 자동 생성(orval) — 응답 신뢰 경계 명확화 _(`pnpm gen:api`, ADR-0006)_
 - [x] 🟡 prod 콘솔 로그/디버그 제거 _(esbuild pure/drop)_
 
 ## 8. CI/CD 보안 게이트

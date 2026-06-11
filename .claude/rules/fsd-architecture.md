@@ -5,8 +5,13 @@ paths:
 
 # FSD 아키텍처 & 상태 관리 규칙
 
-[Feature-Sliced Design 2.x](https://feature-sliced.design) 6레이어 구조.
-`pnpm lint:fsd`(Steiger, `steiger.config.ts` = recommended)가 CI·Stop 게이트에서 하드 강제한다.
+> 강제의 정본은 `steiger.config.ts`(`pnpm lint:fsd` — CI·Stop 게이트에서 하드 강제)와
+> `eslint.config.js`(`no-restricted-imports` 등)다. 이 문서는 그 규칙의 해설·요약이며,
+> 충돌 시 설정이 우선한다. 결정 배경:
+> [ADR 0001 FSD 아키텍처](../../docs/adr/0001-fsd-architecture.md) ·
+> [ADR 0002 상태 관리](../../docs/adr/0002-state-management.md)
+
+[Feature-Sliced Design 2.x](https://feature-sliced.design) 정석 6레이어 구조를 따른다.
 
 ## FSD 의존성 규칙
 
@@ -31,15 +36,8 @@ paths:
   — 줄이면 dehydrate 대상에서 빠져 persist가 조용히 무력화된다.
 - **API 호출** → `features/*/api`의 Axios 레이어 함수로 정의(슬라이스 내부용, 배럴 미노출).
   `shared/api`의 `axiosInstance`가 요청 인터셉터로 토큰을 주입하고, 응답 인터셉터로 401 시
-  인증 상태를 초기화하고 `/login`으로 보낸다.
-
-  ```typescript
-  export const getUsers = async () => {
-    const { data } = await axiosInstance.get<User[]>('/users');
-    return data;
-  };
-  ```
-
+  인증 상태를 초기화하고 `/login`으로 보낸다. 파일 골격·예시 코드는
+  [`slice-blueprint.md`](slice-blueprint.md) 참고.
 - **⚠️ axios 인증 브리지** — `shared/api/axiosInstance`는 도메인 의존성 0이며, 토큰 getter·401
   핸들러는 `src/app/config/configureAxios.ts`가 `configureAuthBridge()`로 주입한다
   (`app/App.tsx` 최상단 side-effect import). 이 import를 제거하면 타입 에러 없이 토큰 주입·401
@@ -58,6 +56,3 @@ paths:
   `RoleRoute`(`allowedRoles` 미충족 → `/403`).
 - 사이드바 메뉴는 `widgets/main-layout/ui/Sidebar.tsx`의 `menuItems[].allowedRoles`로 역할 필터링.
 - 역할: `'admin' | 'manager' | 'user'`. `/users`는 `admin`/`manager`만 접근 가능.
-
-> 결정 배경: [ADR 0001 FSD 아키텍처](../../docs/adr/0001-fsd-architecture.md) ·
-> [ADR 0002 상태 관리](../../docs/adr/0002-state-management.md)
