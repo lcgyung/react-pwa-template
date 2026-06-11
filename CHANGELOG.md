@@ -3,6 +3,12 @@
 이 프로젝트의 주요 변경 사항을 기록합니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를
 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 준수합니다.
 
+## [0.2.2] - 2026-06-11
+
+### Changed
+
+- 하네스: 출력 언어 한글 통일 규칙 추가 — Claude Code 응답·커밋·PR 을 한글로 작성(정본 `CLAUDE.md`, `session-context.sh` 매 세션 보강). CONTRIBUTING 커밋 예시 한글화.
+
 ## [0.2.1] - 2026-06-11
 
 하네스·CI 보강 패치 릴리스.
