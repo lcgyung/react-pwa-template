@@ -174,11 +174,27 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   `tsconfig`에 `strict`, `noUnusedLocals/Parameters`가 켜져 있습니다.
 - **최소 보일러플레이트** — 불필요한 추상화를 피하고 간결하게 작성합니다.
 - **ESLint + Prettier** — 모든 코드는 린트/포매팅 규칙을 통과해야 합니다 (`pnpm lint`, `pnpm format`).
-  Shadcn/UI 프리미티브(`src/shared/ui/**`)는 컴포넌트와 variant 를 함께 export 하므로 해당
-  디렉터리에 한해 `react-refresh/only-export-components` 규칙을 끕니다(`eslint.config.js`).
+  Shadcn/UI 프리미티브(`src/shared/ui/**`)는 컴포넌트와 variant 를 함께 export 하고 `function`
+  선언을 쓰는 업스트림 표준을 따르므로, 해당 디렉터리에 한해 `react-refresh/only-export-components`
+  와 `react/function-component-definition` 규칙을 끕니다(`eslint.config.js`).
+- **import 정렬(자동)** — `simple-import-sort` 가 `외부 패키지 → @/ 절대경로 → 상대경로` 순서를
+  강제·autofix 합니다(`eslint.config.js`). 수동으로 순서를 맞출 필요 없이 저장/커밋 시 정렬됩니다.
+  단, side-effect import(`import '@/app/config/configureAxios'`)는 정렬 장벽으로 위치가 보존됩니다.
+- **컴포넌트 선언은 화살표 함수** — `react/function-component-definition` 가 `const X = () => …` 를
+  강제합니다(`shared/ui` shadcn 프리미티브는 위 예외). autofix 로 자동 변환됩니다.
+- **접근성(a11y)** — `eslint-plugin-jsx-a11y` recommended 를 강제합니다. aria/role/포커스 관련
+  위반은 린트에서 막힙니다.
+- **React Query 키** — 쿼리 키는 하드코딩하지 말고 슬라이스별 `<도메인>Keys` 객체로 정의합니다
+  (`features/users/model/useUsers.ts` 의 `userKeys`, `features/auth/model/useAuth.ts` 의 `authKeys`).
 - **FSD 경계** — `pnpm lint:fsd`(Steiger)를 통과해야 합니다(레이어 의존 방향·Public API·
   cross-import). 위 "FSD 의존성 / Public API 규칙" 절 참고.
 - **Husky + Lint-Staged** — 커밋 시 변경 파일에 자동으로 `eslint --fix` + `prettier`가 적용됩니다.
+- **Conventional Commits(자동)** — 커밋 메시지는 `commitlint`(`@commitlint/config-conventional`)이
+  `.husky/commit-msg` 훅에서 검증합니다. `feat: …` / `fix: …` / `docs: …` / `chore: …` 등 타입
+  프리픽스가 없으면 커밋이 거부됩니다(`commitlint.config.js`).
+- **테스트 커버리지(ratchet)** — `pnpm test:coverage`(v8) 가 `vite.config.ts` 의 임계값을 강제하며
+  CI 의 test 스텝이 이를 사용합니다. 현재 베이스라인 아래로 고정돼 있고, 테스트를 추가하며 PR 마다
+  임계값을 점진 상향합니다. (Stop 게이트의 `vitest run` 은 속도를 위해 coverage 미포함.)
 
 ## Claude Code 자동화 (`.claude/`)
 
@@ -192,12 +208,14 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   `vitest run` + `pnpm lint:fsd`(Steiger) 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
   `stop_hook_active` 무한루프 가드와 `cd "$CLAUDE_PROJECT_DIR"` cwd 가드 포함.
 - `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`(FSD 경계 점검 포함)가 함께 제공된다.
-- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 ratchet.
+- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 상향(ratchet 베이스라인·
+  CI 강제는 도입 완료 — 테스트 추가하며 점진 상향).
 
 ## 배포 (인프라)
 
 `Dockerfile`(빌드 → `nginx:1.27` 서빙) + `nginx.conf`(SPA fallback, 정적 에셋 캐싱, 서비스 워커
-no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows/ci.yml`(lint → test → build).
+no-cache)로 프로덕션 컨테이너를 구성한다. CI는 `.github/workflows/ci.yml`(lint → lint:fsd →
+test(coverage 임계값) → build).
 
 ## 로드맵
 
