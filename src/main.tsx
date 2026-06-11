@@ -15,13 +15,18 @@ async function enableMocking() {
   await worker.start({ onUnhandledRequest: 'bypass' });
 }
 
-enableMocking().then(() => {
-  const rootEl = document.getElementById('root');
-  if (!rootEl) throw new Error('Root element(#root)를 찾을 수 없습니다.');
+// 목 초기화 실패가 앱 렌더를 막지 않도록 한다(실패 시 목 없이 그대로 부팅).
+enableMocking()
+  .catch((error) => {
+    console.error('[mock] MSW 초기화 실패 — 목 없이 계속 진행합니다.', error);
+  })
+  .then(() => {
+    const rootEl = document.getElementById('root');
+    if (!rootEl) throw new Error('Root element(#root)를 찾을 수 없습니다.');
 
-  createRoot(rootEl).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-});
+    createRoot(rootEl).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+  });
