@@ -3,6 +3,39 @@
 이 프로젝트의 주요 변경 사항을 기록합니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를
 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 준수합니다.
 
+## [0.2.0] - 2026-06-11
+
+react-admin-template 파리티 도달 릴리스 — 데이터 레이어·보안·PWA·CI 하네스를 보강했습니다.
+
+### Added
+
+- API 타입 코드젠: **orval** 도입 — OpenAPI 스펙(`openapi/pwa-api.yaml`)에서 타입 생성·커밋(`pnpm gen:api`, [ADR-0006](docs/adr/0006-api-types-orval.md)).
+- React Query 오프라인 persist: localStorage 캐시 복원 · 앱 버전(`__APP_VERSION__`) buster · 세션 의존 쿼리 `meta: { persist: false }` 옵트아웃([ADR-0007](docs/adr/0007-react-query-offline-persist.md)).
+- web-vitals 수집(옵트인): `VITE_WEB_VITALS_ENDPOINT` 설정 시 CWV 를 sendBeacon 으로 전송 — 동적 import 라 메인 번들 미포함.
+- PWA 설치 프롬프트(`features/pwa-install`, `beforeinstallprompt` 캡처) + 오프라인 폴백 페이지(`public/offline.html`) + 교차 출처 에셋 workbox 런타임 캐싱.
+- 환경 변수 검증: 부팅 시 Zod 로 `VITE_*` 조기 검증(`shared/config/env.ts`).
+- 라우트 에러 바운더리 + 접근성 폴백 · 로그인 후 캡처된 경로로 복귀(redirect-back) · 라우트 페이지 lazy-load(Suspense).
+- 검증 게이트: `pnpm verify`(typecheck·lint·format:check·test·lint:fsd) / `pnpm verify:full`(+build).
+- FSD 슬라이스 생성기: `pnpm gen:slice`(plop) · Playwright E2E(로그인 스모크·오프라인 시나리오) · 번들 분석 옵션(`pnpm build:analyze`).
+
+### Changed
+
+- 런타임 타깃을 **Node 24** 로 마이그레이션(`.nvmrc`·`engines.node`·CI·Dockerfile 동기화).
+- 하네스 문서 계층화: 얇은 `CLAUDE.md`(지도+불변 경고) + `.claude/rules/` 단일 소유 구조로 리팩토링.
+- 파일 컨벤션 하네스를 react-admin-template 과 정렬 · clean-code 게이트 일원화.
+- 프로덕션 빌드에서 `console.log`/`debugger` 제거(`console.error` 유지).
+
+### Security
+
+- CSP·보안 헤더(nginx, [ADR-0005](docs/adr/0005-csp-and-security-headers.md)) · 로그아웃 시 Cache Storage·IndexedDB 정리.
+- SCA: gitleaks 시크릿 스캔 · `pnpm audit` + OSV 스캐너 · dist 시크릿 grep · SBOM(CycloneDX) 생성.
+- security eslint 플러그인(`no-unsanitized`·`security`) flat config 연동 · [`SECURITY.md`](SECURITY.md) + 위협 모델.
+
+### CI / Infra
+
+- GitHub Actions: Lighthouse CI(a11y/best-practices/seo) · E2E 잡 · Dependabot · CODEOWNERS.
+- 설계 결정 문서화: ADR 0002~0007 · `docs/shadcn-components.md`.
+
 ## [0.1.0] - 2026-06-10
 
 ### Added
