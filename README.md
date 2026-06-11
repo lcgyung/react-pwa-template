@@ -4,11 +4,11 @@ React + TypeScript + Vite 기반 PWA 템플릿. Shadcn/UI, React Query, Zustand,
 
 ## Stack
 
-React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · React Router · React Query · Axios · Zustand · React Hook Form · Zod · Dayjs · MSW · Vitest · ESLint · Prettier · Husky · Storybook
+React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · React Router · React Query · Axios · Zustand · React Hook Form · Zod · Dayjs · MSW · Vitest · Playwright · ESLint · Prettier · Husky · Storybook
 
 ## Features
 
-- PWA: 홈 화면 설치 · 오프라인 캐싱 · Service Worker · 자동 업데이트 알림
+- PWA: 홈 화면 설치(설치 프롬프트) · 오프라인 캐싱 · Service Worker · 자동 업데이트 알림
 - Shadcn/UI + Tailwind CSS, 모바일 우선 반응형
 - 인증 (로그인/로그아웃, 토큰 저장, 보호된 라우트)
 - RBAC 기반 메뉴·라우트 접근 제어 (`admin` / `manager` / `user`)
@@ -18,9 +18,10 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - React Hook Form + Zod 검증
 - 다크 모드 (Tailwind + persist)
 - MSW 목 API (백엔드 없이 즉시 동작)
-- Vitest + Testing Library
+- 환경 변수 검증 (Zod, 부팅 시 조기 실패)
+- Vitest + Testing Library · Playwright E2E (로그인 스모크 · 오프라인 시나리오)
 - ESLint + Prettier + Husky + Lint-Staged
-- Storybook · Docker (nginx) · GitHub Actions CI
+- Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · gitleaks · Lighthouse · E2E) · Dependabot
 
 ## Quick Start
 
@@ -52,10 +53,12 @@ pnpm dev
 ```bash
 pnpm dev              # 개발 서버
 pnpm build            # 프로덕션 빌드 (타입체크 포함)
+pnpm build:analyze    # 번들 분석 리포트 생성 (dist/stats.html)
 pnpm preview          # 빌드 미리보기 (PWA 동작 확인)
 pnpm lint             # 린트
 pnpm lint:fsd         # FSD 레이어 경계 검사 (Steiger)
-pnpm test             # 테스트
+pnpm test             # 단위/컴포넌트 테스트 (Vitest)
+pnpm test:e2e         # E2E 테스트 (Playwright — build+preview 위에서 실행)
 pnpm storybook        # Storybook (port 6006)
 ```
 
@@ -66,16 +69,24 @@ VITE_API_BASE_URL=http://localhost:3000
 VITE_ENABLE_MOCK=true   # MSW 목 API. 실제 백엔드 연동 시 false
 ```
 
-`.env.development` / `.env.production`으로 모드별 분리. 값은 `.env.example` 참고.
+`.env.development` / `.env.production`으로 모드별 분리. 값은 `.env.example` 참고. 환경 변수는 부팅
+시 `src/shared/config/env.ts`(Zod)가 검증하여 오타·잘못된 값을 즉시 에러로 드러냅니다.
+
+> Playwright E2E 는 결정적 실행을 위해 빌드 단계에서 `VITE_ENABLE_MOCK=false` 로 강제합니다(로그인은
+> route 스텁, 오프라인은 PWA SW 로 검증).
 
 ## PWA
 
 - 설치형 앱 (Add to Home Screen) · 오프라인 지원 · 백그라운드 에셋 캐싱
 - 업데이트 전략: `vite-plugin-pwa`의 `registerType: 'prompt'` — 새 버전 감지 시
   `PWABadge`(`src/widgets/pwa-badge`)가 새로고침을 확인받는 알림을 띄움
+- 설치 프롬프트: `beforeinstallprompt` 를 캡처해 설치 버튼을 노출(`src/features/pwa-install`,
+  iOS 는 이벤트 미지원이라 표시되지 않음)
+- 캐싱: precache(앱 셸) + 런타임 캐싱(교차 출처 이미지/폰트는 `CacheFirst`, `/api` 는 `NetworkOnly`).
+  오프라인 폴백 페이지는 `public/offline.html`. 자세한 전략은 [`docs/adr/0003`](docs/adr/0003-pwa-caching-strategy.md)
 - 아이콘·테마 색상은 `public/` 의 매니페스트 에셋(192/512px, maskable) 교체로 커스터마이즈
   (`scripts/gen-icons.mjs` 로 플레이스홀더 재생성 가능)
-- SW·설치 동작은 `pnpm build && pnpm preview`(HTTPS/localhost)에서만 확인 가능
+- SW·설치·오프라인 동작은 `pnpm build && pnpm preview`(HTTPS/localhost) 또는 `pnpm test:e2e` 로만 확인 가능
 
 ## Structure
 
@@ -116,7 +127,9 @@ admin 수준 보일러플레이트(스캐폴딩 · PWA · UI · 데이터 레이
 ## Contributing
 
 브랜치 전략·커밋 컨벤션(Conventional Commits)·버전 규칙(SemVer)은 [`CONTRIBUTING.md`](CONTRIBUTING.md),
-변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)를 참고하세요.
+변경 이력은 [`CHANGELOG.md`](CHANGELOG.md)를 참고하세요. 주요 설계 결정은
+[`docs/adr/`](docs/adr), 사용 중인 Shadcn 컴포넌트 목록·갱신 절차는
+[`docs/shadcn-components.md`](docs/shadcn-components.md)에 정리돼 있습니다.
 
 ## License
 
