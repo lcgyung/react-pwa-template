@@ -11,7 +11,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'dev-dist', 'storybook-static', 'coverage', 'public/mockServiceWorker.js'],
+    ignores: [
+      'dist',
+      'dev-dist',
+      'storybook-static',
+      'coverage',
+      'playwright-report',
+      'test-results',
+      '.lighthouseci',
+      'public/mockServiceWorker.js',
+    ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

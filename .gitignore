@@ -14,6 +14,9 @@ dev-dist
 storybook-static
 coverage
 .lighthouseci
+test-results
+playwright-report
+playwright/.cache
 *.tsbuildinfo
 *.local
 
