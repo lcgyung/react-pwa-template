@@ -19,6 +19,12 @@ updates:
           - major
           - minor
           - patch
+    ignore:
+      # @types/node 는 성숙 메이저(^22) 유지 — CLAUDE.md "Node 버전 / 패키지 매니저" 정책
+      # (갓 발행된 메이저는 pnpm minimumReleaseAge 게이트와 충돌, PR #22 참고)
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
 
   # GitHub Actions 워크플로 액션 버전 — 월간, 전부 한 PR 로 묶는다.
   - package-ecosystem: github-actions
