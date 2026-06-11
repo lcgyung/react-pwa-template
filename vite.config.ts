@@ -10,6 +10,13 @@ const analyze = process.env.ANALYZE === 'true';
 
 // https://vite.dev/config/
 export default defineConfig({
+  // 프로덕션 빌드(minify)에서만 console.log/info/debug 를 제거한다. console.error/warn 은 보존
+  // — main.tsx 의 MSW 초기화 실패 로그(console.error)가 살아 있어야 한다. pure 는 minify 시에만
+  // 적용되므로 dev 서버 로그는 그대로 유지된다.
+  esbuild: {
+    drop: ['debugger'],
+    pure: ['console.log', 'console.info', 'console.debug'],
+  },
   plugins: [
     react(),
     tailwindcss(),
