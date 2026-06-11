@@ -4,10 +4,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from '@/app/App';
+import { env } from '@/shared/config';
 
 // VITE_ENABLE_MOCK=true 일 때만 MSW 목 서버를 기동한다.
 async function enableMocking() {
-  if (import.meta.env.VITE_ENABLE_MOCK !== 'true') {
+  if (env.VITE_ENABLE_MOCK !== 'true') {
     return;
   }
   const { worker } = await import('@/app/mocks/browser');
