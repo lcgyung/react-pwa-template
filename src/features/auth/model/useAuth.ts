@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@/entities/session';
 import { paths } from '@/shared/config';
+import { clearOfflineStorage } from '@/shared/lib/clearOfflineStorage';
 
 import { getMe, login, logout } from '../api/authApi';
 import type { LoginRequest } from './types';
@@ -34,6 +35,8 @@ export const useLogout = () => {
     onSettled: () => {
       clearAuth();
       queryClient.clear();
+      // 오프라인 캐시·IndexedDB 정리(베스트 에포트, 네비게이션 비차단).
+      void clearOfflineStorage();
       navigate(paths.login, { replace: true });
     },
   });
