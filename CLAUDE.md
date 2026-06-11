@@ -35,6 +35,7 @@ pnpm lint                        # eslint .
 pnpm lint:fsd                    # FSD 레이어 경계 검사 (Steiger) — 위반 시 CI/게이트 하드 실패
 pnpm format                      # prettier --write .
 pnpm gen:api                     # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval, 생성물 커밋)
+pnpm gen:slice                   # FSD feature/entity 슬라이스 골격 생성 (plop, slice-blueprint 정본대로)
 
 pnpm test                        # 단위/컴포넌트 테스트 (vitest run, jsdom)
 pnpm test:watch                  # watch 모드
@@ -104,8 +105,12 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   "무엇" 이름 금지.)
 - 검사: `pnpm lint:fsd`(Steiger, `steiger.config.ts`). Stop 게이트와 CI에서 **위반 시 하드 실패**.
 
-**새 슬라이스 추가 레시피**: ① 레이어 선택(화면=pages, 재사용 UI 블록=widgets, 사용자
-액션=features, 도메인 모델=entities) → ② 슬라이스 폴더 + 세그먼트(`ui/api/model`) 작성 →
+**새 슬라이스 추가 레시피**: features/entities 슬라이스는 **`pnpm gen:slice`**(plop)로 골격을
+정본대로 생성한다 — 레이어·이름을 입력하면 세그먼트(`api/model`)·`index.ts` 배럴·`keys` 상수
+객체까지 스캐폴딩되고 생성 직후 `eslint --fix`+prettier 가 적용된다. 정본 골격과 🔒 강제 규칙은
+[`.claude/rules/slice-blueprint.md`](.claude/rules/slice-blueprint.md) 참고. 생성 직후엔 미참조라
+`steiger`가 `fsd/insignificant-slice`로 막으니 상위(페이지 등)에서 import해 연결한다. pages/widgets
+처럼 plop 템플릿이 없는 레이어는 ① 레이어 선택 → ② 슬라이스 폴더 + 세그먼트(`ui/api/model`) →
 ③ `index.ts` 배럴로 공개할 것만 export → ④ `pnpm lint:fsd` 로 경계 확인.
 
 ## UI (Shadcn/UI + Tailwind v4)
@@ -203,6 +208,13 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   위반은 린트에서 막힙니다.
 - **React Query 키** — 쿼리 키는 하드코딩하지 말고 슬라이스별 `<도메인>Keys` 객체로 정의합니다
   (`features/users/model/useUsers.ts` 의 `userKeys`, `features/auth/model/useAuth.ts` 의 `authKeys`).
+  로컬 ESLint 룰 `local/query-key-object` 가 `queryKey: [...]` 배열 리터럴을 **error 로 차단**합니다.
+- **파일 구현 구조 강제(ESLint)** — 폴더 구조는 Steiger 가, **슬라이스 내부 구현**은 다음 룰이
+  error 로 하드 강제합니다(형제 admin-template 과 동일, 정본 [`.claude/rules/slice-blueprint.md`](.claude/rules/slice-blueprint.md)):
+  ① `local/no-default-export` — `default export` 금지(named export 통일; 스토리·`*.config.ts`·
+  `.storybook/**` 예외). ② `no-restricted-imports` — `api/` 세그먼트 밖에서 `@/shared/api` 의
+  `axiosInstance` 직접 import 금지(컴포넌트는 React Query 훅 경유). ③ `@typescript-eslint/naming-convention`
+  — `warn` 이 아니라 **`error`** 로 강제(컴포넌트/타입 PascalCase·훅 `use*`·함수/변수 camelCase).
 - **FSD 경계** — `pnpm lint:fsd`(Steiger)를 통과해야 합니다(레이어 의존 방향·Public API·
   cross-import). 위 "FSD 의존성 / Public API 규칙" 절 참고.
 - **Husky + Lint-Staged** — 커밋 시 변경 파일에 자동으로 `eslint --fix` + `prettier`가 적용됩니다.
@@ -217,7 +229,10 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 
 `.claude/settings.json` 이 훅을 등록한다. 코드를 만질 때 아래 동작을 전제로 한다.
 
-- **SessionStart** → `session-context.sh`: 브랜치·Shadcn·PWA 가이드라인 등 컨텍스트를 주입.
+- **SessionStart** → `session-context.sh`: 현재 브랜치를 주입(정적 규칙은 CLAUDE.md·`.claude/rules/` 담당).
+- **정적 규칙(`.claude/rules/`)** → 파일별 `paths` 글롭으로 자동 주입되는 규칙 문서
+  (`fsd-architecture`·`code-style`·`security`·`testing`·`slice-blueprint`). 강제의 정본은 `eslint.config.js`/
+  `steiger.config.ts`/`tsconfig` 이며, 이 문서들은 그 규칙의 해설·요약이다(충돌 시 린트 설정 우선).
 - **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard` 등)을 차단.
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(변경 `*.ts(x)` 에 `eslint --fix` + `prettier`,
   Tailwind 클래스 정렬 포함) + `check-pwa.sh`(매니페스트/SW 설정 검증).
@@ -225,8 +240,10 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   `vitest run` + `pnpm lint:fsd`(Steiger) 게이트. 실패하면 `exit 2` 로 계속 수정을 유도한다.
   `stop_hook_active` 무한루프 가드와 `cd "$CLAUDE_PROJECT_DIR"` cwd 가드 포함.
 - `.claude/agents/code-reviewer.md`, `.claude/skills/code-review/`(FSD 경계 점검 포함)가 함께 제공된다.
-- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬, coverage 임계값 상향(ratchet 베이스라인·
-  CI 강제는 도입 완료 — 테스트 추가하며 점진 상향).
+- **슬라이스 스캐폴딩** → `pnpm gen:slice`(plop, `plopfile.mjs` + `tools/templates/slice/**`)가
+  features/entities 골격을 `slice-blueprint` 정본대로 생성한다(생성물 자동 포맷).
+- **잔여(백로그, 후속 컨텍스트에서 진행)**: `/tdd` 스킬(테스트 시나리오 자동강제 — 형제 admin-template
+  도 미도입). coverage 임계값 상향은 ratchet 베이스라인·CI 강제가 도입 완료라 테스트 추가하며 점진 상향.
 
 ## 보안
 

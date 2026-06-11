@@ -12,6 +12,43 @@ import storybook from 'eslint-plugin-storybook';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+// 프로젝트 고유 "파일 구현" 구조 규칙 — 외부 의존성 없이 flat config 안의 로컬 플러그인으로 정의한다.
+// 폴더 구조는 steiger 가, 파일 내부 구현(queryKey 객체·named export)은 아래 룰이 error 로 하드 강제한다.
+const local = {
+  rules: {
+    // queryKey 배열 리터럴 금지 → userKeys/authKeys 같은 상수 객체를 강제(중복 키·무효화 누락 방지).
+    'query-key-object': {
+      meta: {
+        type: 'problem',
+        docs: { description: 'queryKey 는 상수 객체로 관리한다(배열 리터럴 금지)' },
+        schema: [],
+      },
+      create: (context) => ({
+        "Property[key.name='queryKey'] > ArrayExpression": (node) => {
+          context.report({
+            node,
+            message:
+              'queryKey 는 userKeys/authKeys 같은 상수 객체로 관리하세요(배열 리터럴 하드코딩 금지).',
+          });
+        },
+      }),
+    },
+    // default export 금지 → named export 통일. 스토리·설정 파일은 아래 override 로 예외.
+    'no-default-export': {
+      meta: {
+        type: 'problem',
+        docs: { description: 'default export 금지(named export 통일)' },
+        schema: [],
+      },
+      create: (context) => ({
+        ExportDefaultDeclaration: (node) => {
+          context.report({ node, message: 'default export 금지 — named export 를 사용하세요.' });
+        },
+      }),
+    },
+  },
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -41,6 +78,7 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
       'simple-import-sort': simpleImportSort,
       react,
+      local,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -72,9 +110,9 @@ export default tseslint.config(
         },
       ],
       'simple-import-sort/exports': 'error',
-      // 네이밍 컨벤션 — 노이즈 최소 셋(admin-template 과 동일). 자동수정 불가라 warn.
+      // 네이밍 컨벤션 — 노이즈 최소 셋(admin-template 과 동일, error 강제). 위반 0건 확인 후 승격.
       '@typescript-eslint/naming-convention': [
-        'warn',
+        'error',
         { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
         {
           selector: 'variable',
@@ -96,6 +134,9 @@ export default tseslint.config(
         'error',
         { namedComponents: 'arrow-function', unnamedComponents: 'arrow-function' },
       ],
+      // 파일 구현 구조 강제(로컬 플러그인) — queryKey 상수 객체·named export 통일.
+      'local/query-key-object': 'error',
+      'local/no-default-export': 'error',
     },
   },
   // 접근성(a11y) 권장 룰셋 — code-review 스킬 기준을 lint 로 강제.
@@ -107,6 +148,32 @@ export default tseslint.config(
     rules: {
       'react-refresh/only-export-components': 'off',
       'react/function-component-definition': 'off',
+    },
+  },
+  {
+    // default export 가 규약상 필요한 파일: Storybook(meta·preview), 빌드/툴 설정(vite·orval·steiger·playwright 등).
+    files: ['**/*.stories.tsx', '**/*.config.{ts,tsx}', '.storybook/**'],
+    rules: { 'local/no-default-export': 'off' },
+  },
+  {
+    // axios 격리 — api 세그먼트(features/*/api, shared/api) 밖에서 axiosInstance 직접 import 금지.
+    // 컴포넌트는 features/* 의 React Query 훅을 거치게 강제(서버 상태 단일 경로).
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/api/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/shared/api',
+              importNames: ['axiosInstance'],
+              message:
+                'axios 호출은 features/*/api 세그먼트에만 두세요. 컴포넌트는 React Query 훅(useAuth·useUsers)을 거칩니다.',
+            },
+          ],
+        },
+      ],
     },
   },
   ...storybook.configs['flat/recommended'],
