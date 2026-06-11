@@ -8,7 +8,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
  * 자체 Tailwind 스타일로 작성되어 Shadcn/UI 도입 전에도 독립 동작한다.
  * 동작 확인은 `pnpm build && pnpm preview` 에서만 가능하다(dev 미지원).
  */
-export function PWABadge() {
+export const PWABadge = () => {
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
@@ -53,4 +53,4 @@ export function PWABadge() {
       </div>
     </div>
   );
-}
+};

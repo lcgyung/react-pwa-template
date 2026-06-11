@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/shared/ui/button';
 import { paths } from '@/shared/config';
+import { Button } from '@/shared/ui/button';
 
 export const ForbiddenPage = () => (
   <div className="flex flex-col items-center gap-4 py-16 text-center">

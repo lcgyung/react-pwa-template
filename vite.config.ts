@@ -1,6 +1,6 @@
-import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
@@ -64,6 +64,28 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
     css: false,
-    passWithNoTests: true,
+    passWithNoTests: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      // 측정 대상에서 제외: 진입점·배럴·목 데이터·스토리·타입 선언(로직 없음).
+      exclude: [
+        'src/**/*.stories.tsx',
+        'src/**/index.ts',
+        'src/app/mocks/**',
+        'src/main.tsx',
+        'src/vite-env.d.ts',
+        'src/**/*.d.ts',
+      ],
+      // ratchet 베이스라인(현재 stmts/lines 28%·branch 68%·funcs 55%): 바로 아래로 고정하고
+      // PR 마다 점진 상향한다. 미달 시 vitest 가 non-zero 로 종료 → CI 실패.
+      thresholds: {
+        lines: 25,
+        statements: 25,
+        functions: 50,
+        branches: 60,
+      },
+    },
   },
 });

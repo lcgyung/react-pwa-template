@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { LogOut, Menu, Moon, Sun } from 'lucide-react';
 
+import { useLogout } from '@/features/auth';
+import { useThemeStore } from '@/features/theme';
+import { useAuthStore } from '@/entities/session';
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -13,12 +16,10 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/shared/ui/sheet';
-import { useLogout } from '@/features/auth';
-import { useAuthStore } from '@/entities/session';
-import { useThemeStore } from '@/features/theme';
+
 import { SidebarNav } from './Sidebar';
 
-export function Header() {
+export const Header = () => {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const mode = useThemeStore((s) => s.mode);
@@ -81,4 +82,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+};

@@ -1,11 +1,12 @@
-import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+
+import { useAuthStore } from '@/entities/session';
+import type { Role, User } from '@/entities/user';
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
-import { useAuthStore } from '@/entities/session';
-import type { Role, User } from '@/entities/user';
 
 const makeUser = (role: Role): User => ({
   id: 1,

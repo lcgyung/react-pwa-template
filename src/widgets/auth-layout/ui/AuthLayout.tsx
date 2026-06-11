@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { paths } from '@/shared/config';
 import { useAuthStore } from '@/entities/session';
+import { paths } from '@/shared/config';
 
 export const AuthLayout = () => {
   const token = useAuthStore((s) => s.token);

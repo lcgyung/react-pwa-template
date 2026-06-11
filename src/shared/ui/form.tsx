@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
 import {
   Controller,
-  FormProvider,
-  useFormContext,
-  useFormState,
   type ControllerProps,
   type FieldPath,
   type FieldValues,
+  FormProvider,
+  useFormContext,
+  useFormState,
 } from 'react-hook-form';
+import { Slot } from '@radix-ui/react-slot';
 
 import { cn } from '@/shared/lib/cn';
 import { Label } from '@/shared/ui/label';
@@ -138,12 +138,12 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
 }
 
 export {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
 };
