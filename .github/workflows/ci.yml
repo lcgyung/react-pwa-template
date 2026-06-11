@@ -53,8 +53,13 @@ jobs:
           echo 'dist 시크릿 스캔 통과 — 의심 패턴 없음.'
 
   # 시크릿 스캔 — 전체 히스토리(fetch-depth: 0)를 훑어 커밋된 비밀값을 탐지한다.
+  # pull_request 이벤트에서 gitleaks-action 은 PR 커밋 목록 API(/pulls/{n}/commits)를 호출하므로
+  # 기본 토큰만으론 'Resource not accessible by integration' 로 실패한다 → pull-requests:read 부여.
   gitleaks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
