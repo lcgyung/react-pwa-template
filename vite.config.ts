@@ -143,13 +143,16 @@ export default defineConfig({
         // 설치 프롬프트 UI 는 브라우저 beforeinstallprompt 에 의존 — 훅(useInstallPrompt)만 테스트한다.
         'src/features/pwa-install/ui/**',
       ],
-      // ratchet 베이스라인(현재 stmts/lines 33%·branch 74%·funcs 66%): 바로 아래로 고정하고
-      // PR 마다 점진 상향한다. 미달 시 vitest 가 non-zero 로 종료 → CI 실패.
+      // ratchet: 현재 베이스라인 바로 아래로 고정하고 PR 마다 점진 상향한다(미달 시 CI 실패).
+      // ⚠️ vitest/coverage-v8 4 는 미테스트 파일의 함수/분기까지 전수 계측한다 — 이전 v3 의
+      // funcs 66%·branch 74% 는 "테스트된 파일만" 세던 값이라 부풀려져 있었다. 동일 테스트의
+      // 정직한 전수 기준(stmts 46·branch 44·funcs 33·lines 47)에 맞춰 재보정했다
+      // (테스트 변경 없음 — 실 커버리지 하향이 아니라 계측 방식 변경에 따른 재보정).
       thresholds: {
-        lines: 30,
-        statements: 30,
-        functions: 60,
-        branches: 70,
+        lines: 45,
+        statements: 44,
+        functions: 30,
+        branches: 40,
       },
     },
   },
