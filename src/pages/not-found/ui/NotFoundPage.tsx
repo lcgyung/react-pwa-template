@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/shared/ui/button';
 import { paths } from '@/shared/config';
+import { Button } from '@/shared/ui/button';
 
 export const NotFoundPage = () => (
   <div className="flex min-h-dvh flex-col items-center justify-center gap-4 text-center">

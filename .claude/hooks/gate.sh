@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Stop: 타입체크 + 린트 + 포맷 + 테스트 + FSD 경계 게이트. 실패 시 exit 2 → Claude가 계속 수정
-# Vite project references 구조이므로 `tsc -b`(빌드 모드)로 타입체크. --noEmit 로 산출물 없이 검사.
+# 단계 정의의 정본은 package.json scripts(`pnpm verify` 와 동일 단계) — 여기선 스크립트를 호출만
+# 한다. 단, `pnpm verify` 자체는 && 체인이라 첫 실패에서 멈추므로 직접 쓰지 않고, 전 단계를 모두
+# 실행해 에러를 집계하는 이 구조를 유지한다(Claude가 한 번에 전부 고치도록).
 set -uo pipefail
 
 # 무한루프 가드: 이미 Stop 훅이 차단해 재시도 중이면 통과시킨다.
@@ -14,18 +16,19 @@ cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}" || exit 0
 
 ERR=""
 
-if ! pnpm exec tsc -b --noEmit >/tmp/cc_tsc.log 2>&1; then
+if ! pnpm typecheck >/tmp/cc_tsc.log 2>&1; then
   ERR+="[typecheck 실패]\n$(tail -n 40 /tmp/cc_tsc.log)\n\n"
 fi
 
-if ! pnpm exec eslint . >/tmp/cc_eslint.log 2>&1; then
+if ! pnpm lint >/tmp/cc_eslint.log 2>&1; then
   ERR+="[lint 실패]\n$(tail -n 40 /tmp/cc_eslint.log)\n\n"
 fi
 
-if ! pnpm exec prettier --check . >/tmp/cc_prettier.log 2>&1; then
+if ! pnpm format:check >/tmp/cc_prettier.log 2>&1; then
   ERR+="[format 실패 — pnpm format 으로 정리]\n$(tail -n 20 /tmp/cc_prettier.log)\n\n"
 fi
 
+# `pnpm test --silent` 는 --silent 가 pnpm 자체 플래그와 모호하므로 vitest 를 직접 호출한다.
 if ! pnpm exec vitest run --silent >/tmp/cc_vitest.log 2>&1; then
   ERR+="[test 실패]\n$(tail -n 40 /tmp/cc_vitest.log)\n\n"
 fi

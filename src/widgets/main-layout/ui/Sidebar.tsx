@@ -1,11 +1,11 @@
-import { LayoutDashboard, Users } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users } from 'lucide-react';
 
-import { cn } from '@/shared/lib/cn';
-import { paths } from '@/shared/config';
 import { useAuthStore } from '@/entities/session';
 import type { Role } from '@/entities/user';
+import { paths } from '@/shared/config';
+import { cn } from '@/shared/lib/cn';
 
 interface MenuItem {
   label: string;
@@ -21,7 +21,7 @@ const menuItems: MenuItem[] = [
 ];
 
 /** 데스크톱/모바일 양쪽에서 재사용하는 네비게이션 목록 (RBAC 역할 필터 포함). */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
   const user = useAuthStore((s) => s.user);
 
   // RBAC: 사용자 역할에 허용된 메뉴만 노출.
@@ -52,14 +52,14 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       ))}
     </nav>
   );
-}
+};
 
 /** 데스크톱 고정 사이드바 (md 이상에서만 표시). */
-export function Sidebar() {
+export const Sidebar = () => {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex h-14 items-center border-b px-4 text-base font-bold">PWA Template</div>
       <SidebarNav />
     </aside>
   );
-}
+};

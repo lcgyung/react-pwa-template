@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { env } from '@/shared/config';
+
 // 인증 브리지(의존성 역전): shared 레이어는 도메인(entities)을 모른다.
 // 앱 부트스트랩에서 configureAuthBridge 로 실제 구현을 주입한다 — 미주입 시 no-op.
 type AuthBridge = {
@@ -16,7 +18,7 @@ export const configureAuthBridge = (bridge: AuthBridge) => {
 };
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 

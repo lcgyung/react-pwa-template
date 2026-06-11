@@ -1,1 +1,1 @@
-export type { Role, User, CreateUserInput } from './model/types';
+export type { CreateUserInput, Role, User } from './model/types';

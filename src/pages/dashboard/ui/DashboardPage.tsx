@@ -1,8 +1,8 @@
+import { useUsers } from '@/features/users';
+import { useAuthStore } from '@/entities/session';
 import { Loading } from '@/shared/ui/Loading';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { StatCard } from '@/shared/ui/StatCard';
-import { useUsers } from '@/features/users';
-import { useAuthStore } from '@/entities/session';
 
 export const DashboardPage = () => {
   const user = useAuthStore((s) => s.user);

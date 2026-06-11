@@ -1,13 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
+import { useLogin } from '@/features/auth';
+import { type LoginFormValues, loginSchema } from '@/features/auth';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/ui/form';
 import { Input } from '@/shared/ui/input';
-import { useLogin } from '@/features/auth';
-import { loginSchema, type LoginFormValues } from '@/features/auth';
 
 export const LoginPage = () => {
   const login = useLogin();
