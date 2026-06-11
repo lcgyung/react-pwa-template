@@ -13,7 +13,7 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - 인증 (로그인/로그아웃, 토큰 저장, 보호된 라우트)
 - RBAC 기반 메뉴·라우트 접근 제어 (`admin` / `manager` / `user`)
 - Axios API Layer (인터셉터로 토큰 주입 · 401 처리 · 공통 에러)
-- React Query 서버 상태 관리
+- React Query 서버 상태 관리 (오프라인 persist — localStorage 캐시 복원, 배포 버전마다 무효화)
 - Zustand 전역 상태 관리 (persist)
 - React Hook Form + Zod 검증
 - 다크 모드 (Tailwind + persist)
@@ -23,6 +23,7 @@ React · TypeScript · Vite · vite-plugin-pwa · Shadcn/UI · Tailwind CSS · R
 - ESLint + Prettier + Husky + Lint-Staged
 - Storybook · Docker (nginx) · GitHub Actions CI (lint · FSD · 테스트 · 빌드 · gitleaks · SCA · Lighthouse · E2E) · Dependabot
 - 보안: CSP·보안 헤더(nginx) · SCA(`pnpm audit` + osv) · SBOM(CycloneDX) · dist 시크릿 스캔 · 로그아웃 시 캐시/IndexedDB 정리 — [`SECURITY.md`](SECURITY.md)
+- 웹 바이탈 수집(옵트인): `VITE_WEB_VITALS_ENDPOINT` 설정 시 sendBeacon 전송 · 동적 import 라 메인 번들 무영향
 
 ## Quick Start
 
@@ -59,6 +60,7 @@ pnpm preview          # 빌드 미리보기 (PWA 동작 확인)
 pnpm lint             # 린트
 pnpm lint:fsd         # FSD 레이어 경계 검사 (Steiger)
 pnpm gen:api          # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval)
+pnpm gen:slice        # FSD feature/entity 슬라이스 골격 생성 (plop)
 pnpm test             # 단위/컴포넌트 테스트 (Vitest)
 pnpm test:e2e         # E2E 테스트 (Playwright — build+preview 위에서 실행)
 pnpm verify           # typecheck + lint + format:check + test + lint:fsd 일괄 검증
