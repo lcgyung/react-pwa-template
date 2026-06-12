@@ -25,6 +25,15 @@ updates:
       - dependency-name: '@types/node'
         update-types:
           - 'version-update:semver-major'
+      # eslint 10 보류 — eslint-plugin-react(<=7.37.5)·eslint-plugin-jsx-a11y(<=6.10.2)가
+      # 아직 ESLint 10 미지원(peer ^9, react/* 룰이 ESLint 10 에서 로드 실패). 두 플러그인이
+      # ESLint 10 대응 릴리스를 내면 이 두 항목을 제거하고 업그레이드 재개 (PR #25 참고).
+      - dependency-name: 'eslint'
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: '@eslint/js'
+        update-types:
+          - 'version-update:semver-major'
 
   # GitHub Actions 워크플로 액션 버전 — 월간, 전부 한 PR 로 묶는다.
   - package-ecosystem: github-actions
