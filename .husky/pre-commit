@@ -1,0 +1,6 @@
+pnpm lint-staged
+
+# 커밋 전 시크릿 스캔 — gitleaks 설치 시에만 동작(미설치 환경은 no-op, CI 의 gitleaks 잡이 최종 방어).
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact
+fi
