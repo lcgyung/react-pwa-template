@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Lint FSD boundaries
+        run: pnpm lint:fsd
+
+      - name: Test (with coverage threshold)
+        run: pnpm test:coverage
+
+      - name: Build
+        run: pnpm build
+
+      # 빌드 산출물 시크릿 grep — 번들에 인라인되면 안 되는 시크릿 패턴을 검사한다.
+      # (VITE_* 사고 등). 매칭이 있으면 비정상 → 빌드 실패. 의존성 없는 휴리스틱.
+      - name: Scan dist bundle for leaked secrets
+        run: |
+          if grep -rIEn \
+            -e 'sk_live_[0-9a-zA-Z]+' \
+            -e 'AKIA[0-9A-Z]{16}' \
+            -e 'gh[pousr]_[0-9A-Za-z]{20,}' \
+            -e 'BEGIN [A-Z ]*PRIVATE KEY' \
+            dist; then
+            echo '::error::dist 번들에서 시크릿 의심 패턴이 발견되었습니다.'
+            exit 1
+          fi
+          echo 'dist 시크릿 스캔 통과 — 의심 패턴 없음.'
+
+  # 시크릿 스캔 — 전체 히스토리(fetch-depth: 0)를 훑어 커밋된 비밀값을 탐지한다.
+  # pull_request 이벤트에서 gitleaks-action 은 PR 커밋 목록 API(/pulls/{n}/commits)를 호출하므로
+  # 기본 토큰만으론 'Resource not accessible by integration' 로 실패한다 → pull-requests:read 부여.
+  gitleaks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # SCA — 의존성 취약점 스캔. high/critical advisory 만 빌드를 차단한다.
+  sca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # high/critical 만 차단, devDependency advisory(번들 미포함)는 --prod 로 제외.
+      - name: pnpm audit (high+, prod)
+        run: pnpm audit --audit-level high --prod
+
+      # OSV 교차검증 — advisory DB 다양성. 비차단(보고용).
+      # 루트 액션은 stub(runs 없음)이고 floating v1 태그도 없어졌다 → 실행 가능한 서브경로 액션을 실태그로 핀.
+      - name: osv-scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --lockfile=pnpm-lock.yaml
+
+      # SBOM(CycloneDX) — 의존성 구성표를 생성해 아티팩트로 보관한다(보고용, 비차단).
+      # SECURITY.md §5 후속 항목. pnpm 인식 생성기 cdxgen 을 dlx 로 실행(devDep 미추가).
+      - name: Generate SBOM (CycloneDX)
+        run: pnpm dlx @cyclonedx/cdxgen@12 -t pnpm -o bom.json
+        continue-on-error: true
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-cyclonedx
+          path: bom.json
+          if-no-files-found: warn
+
+  # Lighthouse — 빌드 산출물(dist)을 정적 서빙해 a11y/best-practices/seo(0.9) 게이트.
+  # 성능(performance)은 환경 편차가 커 warn 으로만 둔다. LH12 는 PWA 카테고리가 제거됨.
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: pnpm exec lhci autorun
+
+  # E2E — Playwright 가 webServer 로 build && preview 를 띄우고 smoke/offline 시나리오를 검증한다.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm exec playwright test

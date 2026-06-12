@@ -1,0 +1,133 @@
+version: 2
+updates:
+  # npm(pnpm-lock.yaml) 의존성 — 월간. minor/patch 는 한 PR 로 묶고(노이즈↓),
+  # peer-coupled 메이저는 그룹으로 묶는다(호환성·노이즈, 아래 groups 참조).
+  - package-ecosystem: npm
+    directory: '/'
+    # 의존성 업데이트 PR 은 dev 로 보낸다 — main 에는 dev→main 통합 PR 만 올린다.
+    # ⚠️ 불변식: 모든 의존성/설정 변경은 반드시 dev 경유(main 직접 커밋 금지). main 에 직접
+    # 들어가면 dependabot 이 비교 기준으로 보는 dev 매니페스트가 뒤처져, 이미 처리한 업데이트의
+    # PR 을 계속 재생성한다(dev↔main desync). dev→main 통합 후엔 dev 를 main 과 다시 맞출 것.
+    target-branch: dev
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 10
+    # 공급망 age-gate 정합 — pnpm 11 의 minimumReleaseAge(1일, pnpm-workspace.yaml 에 명시)보다 어린
+    # 버전은 install 이 막힌다. 릴리스 후 N일 소킹한 뒤 PR 을 열어 "갓 게시 버전" 이 게이트에 걸리는
+    # 전이적 CI 실패를 원천 제거한다. 메이저는 더 길게 소킹(초기 릴리스 버그 회피).
+    #
+    # 불변식: min(cooldown days)=semver-patch-days(2일) ≥ minimumReleaseAge(1440분=1일).
+    # cooldown 최저값은 항상 gate 이상이어야 dependabot 제안이 install 게이트에 안 걸린다.
+    # gate(pnpm-workspace.yaml minimumReleaseAge)를 올리면 semver-patch-days 도 함께 올릴 것.
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+      semver-minor-days: 3
+      semver-patch-days: 2
+    # 메이저 그룹화(update-types: major) — 두 축으로 묶는다:
+    #  (1) 런타임/강한 peer 결합 패밀리는 패밀리별 분리(react·radix·tailwind·tanstack·
+    #      react-hook-form) — 단독 메이저가 peer 를 깨는 케이스 차단 + blast-radius 격리.
+    #  (2) 독립적 dev-tooling 메이저는 노이즈↓ 위해 통합(build-and-test·lint-and-tooling).
+    # minor/patch 는 그룹 밖이라 아래 minor-and-patch 단일 PR 로 빠진다(노이즈·lockstep 보존).
+    # 그룹 밖 단일 패키지(axios·react-router-dom·typescript·zod 등)의 메이저는 개별 PR(개별 검토).
+    groups:
+      # 런타임/강한 peer 결합 패밀리 — 분리 유지(메이저 혼합 시 blast-radius 큼, 개별 검토).
+      react-major:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - major
+      radix-major:
+        patterns:
+          - '@radix-ui/*'
+        update-types:
+          - major
+      tailwind-major:
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+          - tw-animate-css
+          - prettier-plugin-tailwindcss
+        update-types:
+          - major
+      tanstack-major:
+        patterns:
+          - '@tanstack/*'
+        update-types:
+          - major
+      react-hook-form-major:
+        patterns:
+          - react-hook-form
+          - '@hookform/*'
+        update-types:
+          - major
+      # 독립적 dev-tooling 메이저 — 노이즈↓ 위해 통합. trade-off: 묶인 한 패키지가 깨지면
+      # 같은 PR 의 형제도 함께 대기. 메이저는 빈도가 낮아 수용 가능(런타임 peer 패밀리는 위에 분리).
+      build-and-test-major:
+        patterns:
+          - vite
+          - vitest
+          - '@vitest/*'
+          - '@vitejs/*'
+          - vite-plugin-pwa
+          - workbox-window
+          - '@testing-library/*'
+        update-types:
+          - major
+      lint-and-tooling-major:
+        patterns:
+          - eslint
+          - '@eslint/*'
+          - 'eslint-config-*'
+          - 'eslint-plugin-*'
+          - typescript-eslint
+          - globals
+          - '@commitlint/*'
+          - steiger
+          - '@feature-sliced/*'
+          - storybook
+          - '@storybook/*'
+        update-types:
+          - major
+      # 그 외 전부 — 모든 패키지의 minor/patch 를 한 PR 로(노이즈 최소화·lockstep 보존).
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # @types/node 는 성숙 메이저(^22) 유지 — CLAUDE.md "Node 버전 / 패키지 매니저" 정책
+      # (갓 발행된 메이저는 pnpm minimumReleaseAge 게이트와 충돌, PR #22 참고)
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
+      # eslint 10 보류 — eslint-plugin-react(<=7.37.5)·eslint-plugin-jsx-a11y(<=6.10.2)가
+      # 아직 ESLint 10 미지원(peer ^9, react/* 룰이 ESLint 10 에서 로드 실패). 두 플러그인이
+      # ESLint 10 대응 릴리스를 내면 이 두 항목을 제거하고 업그레이드 재개 (PR #25 참고).
+      - dependency-name: 'eslint'
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: '@eslint/js'
+        update-types:
+          - 'version-update:semver-major'
+
+  # GitHub Actions 워크플로의 액션 버전 — 월간. 전부 한 PR 로 묶어 노이즈를 줄인다.
+  - package-ecosystem: github-actions
+    directory: '/'
+    target-branch: dev
+    schedule:
+      interval: monthly
+    # 액션도 갓 태그된 버전 회피 — npm 과 동일한 소킹 정책(초기 릴리스 버그/탈취 회피).
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+      semver-minor-days: 3
+      semver-patch-days: 2
+    groups:
+      github-actions:
+        patterns:
+          - '*'
