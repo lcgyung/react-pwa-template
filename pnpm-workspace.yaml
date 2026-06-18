@@ -24,3 +24,12 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - esbuild
   - msw
+# axios > form-data 가 4.0.5 를 끌어오는데 4.0.x 라인의 high CVE(GHSA-hmw2-7cc7-3qxx, CRLF injection)
+# 패치는 4.0.6+. axios 의 form-data ^4.0.0 범위와 호환되므로 patched 라인으로 고정한다(CI pnpm audit 차단 해소).
+overrides:
+  form-data: ^4.0.6
+  # eslint-plugin-react-hooks@7 은 zod-validation-error 의 './v4' 서브패스를 import 하는데, 이 서브패스는
+  # 4.x 라인에만 있다. admin-template(zod 3)은 트리가 4.0.2 로 dedup 돼 자연 통과하지만, 이 repo(zod 4)는
+  # pnpm 이 3.5.4(='./v4' 없음)로 떨어져 ERR_PACKAGE_PATH_NOT_EXPORTED 로 lint 가 크래시한다. 4.x 라인으로
+  # 고정해 admin 과 동일 해석을 강제한다(4.0.2 peer: zod ^3.25 || ^4.0 — zod 4.4.3 호환).
+  zod-validation-error: ^4.0.2

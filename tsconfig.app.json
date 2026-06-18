@@ -14,8 +14,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path alias */
-    "baseUrl": ".",
+    /* Path alias — baseUrl 제거: TS6 에서 deprecated(TS7 제거 예정). bundler 모드는 baseUrl 없이 paths 해석 */
     "paths": {
       "@/*": ["./src/*"]
     },

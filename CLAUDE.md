@@ -9,7 +9,7 @@ Tailwind CSS v4)와 PWA(vite-plugin-pwa) 부분뿐입니다.
 
 **문서 계층** — 이 문서는 "지도 + 불변 경고"만 담는다. 주제별 상세 규칙의 단일 출처는
 [`.claude/rules/`](.claude/rules/)(편집 파일 경로에 따라 자동 주입: `fsd-architecture` ·
-`code-style` · `testing` · `security` · `slice-blueprint`), 결정 배경은 [`docs/adr/`](docs/adr/),
+`code-style` · `testing` · `security` · `slice-blueprint` · `pattern-contamination`), 결정 배경은 [`docs/adr/`](docs/adr/),
 현행 점검표는 `docs/harness-*.md`. **같은 내용을 여러 문서에 중복 기술하지 말고 링크로 대체할 것.**
 
 ## 출력 언어 (한글 통일)
@@ -21,8 +21,8 @@ Claude Code 의 모든 **응답·커밋 메시지·PR(제목·본문)** 은 한�
 ## Node 버전 / 패키지 매니저
 
 - **Node 24** 타깃. 버전을 올릴 때는 네 곳을 함께 맞춘다: `.nvmrc` · `package.json` `engines.node` ·
-  CI `node-version` · Dockerfile base 이미지. `@types/node` 는 성숙 메이저(`^22`)에 둔다
-  (갓 발행된 타입 패키지의 공급망 `minimumReleaseAge` 충돌 회피 — admin-template 과 동일).
+  CI `node-version` · Dockerfile base 이미지. `@types/node` 는 admin-template 과 동일하게 `^25`(현행
+  메이저)로 둔다 — 갓 발행된 메이저는 dependabot cooldown·pnpm `minimumReleaseAge` 게이트가 자동 소킹한다.
 - **pnpm** 사용(npm/yarn 금지). pnpm 10+ 는 의존성 빌드 스크립트를 기본 차단하며, `esbuild`/`msw`
   허용 설정은 `pnpm-workspace.yaml`(`onlyBuiltDependencies`)에 있다.
 
@@ -35,6 +35,7 @@ pnpm preview                     # 빌드 산출물 미리보기 — PWA 검증�
 pnpm lint                        # eslint .
 pnpm lint:fsd                    # FSD 레이어 경계 검사 (Steiger) — 위반 시 CI/게이트 하드 실패
 pnpm format                      # prettier --write .
+pnpm knip                        # dead code/unused export 탐지 (Pattern Contamination)
 pnpm gen:api                     # OpenAPI 스펙(openapi/pwa-api.yaml) → API 타입 생성 (orval, 생성물 커밋)
 pnpm gen:slice                   # FSD feature/entity 슬라이스 골격 생성 (plop, slice-blueprint 정본대로)
 
@@ -140,15 +141,19 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 
 `.claude/settings.json` 이 훅을 등록한다. 코드를 만질 때 아래 동작을 전제로 한다.
 
-- **SessionStart** → `session-context.sh`: 현재 브랜치를 주입.
+- **SessionStart** → `session-context.sh`(현재 브랜치 주입) + `contamination-report.sh`(knip 으로 dead code/unused export 후보를 "오염 맵"으로 주입 — 탐지·인지 전용, 옵트인 `CC_CONTAMINATION_REPORT=1`. 캐시·타임아웃·미설치 시 비차단. 정책 정본 `.claude/rules/pattern-contamination.md`).
 - **정적 규칙(`.claude/rules/`)** → 파일별 `paths` 글롭으로 자동 주입. 강제의 정본은
   `eslint.config.js`/`steiger.config.ts`/`tsconfig` 이며 rules 문서는 해설(충돌 시 설정 우선).
-- **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard`) 차단.
+- **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard`)을 차단.
+  acceptEdits/bypassPermissions 모드에서는 추가 규칙(`git clean -f`, `curl|sh` 파이프 실행,
+  `git checkout/restore .`)을 강화 — 사용자 확인이 줄어드는 모드일수록 훅이 보상 통제.
+  `permission_mode`를 못 읽으면(빈/미지 값) 강화 규칙을 적용한다 — 판단 불가 시 강하게(fail-closed).
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(`eslint --fix` + `prettier`) +
   `check-pwa.sh`(매니페스트/SW 설정 검증).
 - **Stop** → `gate.sh`: `pnpm verify` 와 동일 단계(typecheck/lint/format:check/test/lint:fsd)를
   && 체인 대신 전부 실행해 에러를 집계하고, 실패 시 `exit 2` 로 계속 수정을 유도한다.
-- `.claude/agents/code-reviewer.md` + `.claude/skills/code-review/`(FSD 경계 점검 포함) 제공.
+- `.claude/agents/code-reviewer.md` + `.claude/skills/code-review/`(FSD 경계 점검 포함) +
+  `.claude/skills/contamination-sweep/`(전체 코드베이스 Pattern Contamination 정기 스윕 — 전용 세션) 제공.
 
 ## 보안
 
