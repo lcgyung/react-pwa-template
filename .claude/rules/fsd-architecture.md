@@ -34,6 +34,13 @@ paths:
   한다([ADR 0007](../../docs/adr/0007-react-query-offline-persist.md)). 세션 의존 쿼리는
   `meta: { persist: false }`로 옵트아웃(`useMe` 참고). `gcTime`(24h)은 persist `maxAge` 이상 유지
   — 줄이면 dehydrate 대상에서 빠져 persist가 조용히 무력화된다.
+- **생성 DTO/훅은 래퍼 세그먼트에서만** — orval 생성물(`@/shared/api` 배럴 재노출, `pnpm gen:api`)은
+  `api`/`model`/`lib`/`config` 세그먼트에서만 import 한다. `ui`/컴포넌트는 래퍼 훅(`useAuth`·`useUsers`)을
+  거친다. 직접 import 는 `local/no-generated-api-outside-wrapper`가 **error 로 차단**한다 — 생성물을
+  `shared` 에 모아 둔 예외([ADR 0006](../../docs/adr/0006-api-types-orval.md))가 전 레이어로 새지 않게
+  강제하는 게이트다. 배럴이 함께 내보내는 손작성 심볼(`axiosInstance`·`configureAuthBridge`·
+  `ApiErrorResponse`·`Paginated`)만 allowlist 이며, 배럴에 손작성 export 를 추가하면 룰의 allowlist
+  (`eslint.config.js`)도 함께 갱신해야 한다.
 - **API 호출** → `features/*/api`의 Axios 레이어 함수로 정의(슬라이스 내부용, 배럴 미노출).
   `shared/api`의 `axiosInstance`가 요청 인터셉터로 토큰을 주입하고, 응답 인터셉터로 401 시
   인증 상태를 초기화하고 `/login`으로 보낸다. 파일 골격·예시 코드는

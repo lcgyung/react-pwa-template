@@ -30,6 +30,8 @@ paths:
   ```
 
 - `api/<name>Api.ts` — raw axios named async 함수. 🔒 `axiosInstance`는 `api/` 세그먼트에서만 import.
+  🔒 orval 생성 DTO/훅(`@/shared/api` 배럴)도 `api`/`model`/`lib`/`config` 세그먼트에서만 import 한다
+  (`local/no-generated-api-outside-wrapper` — `ui/`는 래퍼 훅을 거친다).
 
   ```ts
   export const getUsers = async () => {

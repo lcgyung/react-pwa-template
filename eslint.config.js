@@ -46,7 +46,58 @@ const local = {
         },
       }),
     },
+    // orval 생성 도메인 훅/DTO 의 ui 직접 import 차단 → model/api/lib 래퍼 경유 강제(ADR-0006 의
+    // "생성물은 손으로 고치지 않는다"를 소비 측 게이트로 승격). `@/shared/api` 배럴은 손작성 인프라
+    // (allowlist)와 생성 DTO 를 함께 재노출하므로, allowlist 밖 심볼 = 생성물로 보고 차단한다
+    // (이름 패턴보다 견고 — 새 DTO 가 늘어도 자동으로 잡힌다). 래퍼 세그먼트 한정 적용은 아래
+    // config 블록의 files/ignores 가 맡는다.
+    'no-generated-api-outside-wrapper': {
+      meta: {
+        type: 'problem',
+        docs: {
+          description: '생성 도메인 훅/DTO 는 model/api/lib 래퍼에서만 import(ui 직접 금지)',
+        },
+        schema: [],
+      },
+      create: (context) => {
+        // `@/shared/api` 가 노출하는 손작성(비생성) 심볼. 나머지는 전부 orval 생성물.
+        const HAND_WRITTEN = new Set([
+          'axiosInstance',
+          'configureAuthBridge',
+          'ApiErrorResponse',
+          'Paginated',
+        ]);
+        const message =
+          '생성 도메인 훅/DTO 는 model/api/lib 래퍼에서만 소비하세요. 컴포넌트는 래퍼 훅(useAuth·useUsers)을 거칩니다.';
+        return {
+          "ImportDeclaration[source.value='@/shared/api']": (node) => {
+            for (const spec of node.specifiers) {
+              // 네임스페이스 import(import * as)는 생성 심볼 전체를 끌어오므로 차단.
+              if (spec.type === 'ImportNamespaceSpecifier') {
+                context.report({ node: spec, message });
+                continue;
+              }
+              if (spec.type !== 'ImportSpecifier') continue;
+              const name = spec.imported.name ?? spec.imported.value;
+              if (!HAND_WRITTEN.has(name)) {
+                context.report({ node: spec, message });
+              }
+            }
+          },
+        };
+      },
+    },
   },
+};
+
+// axios 격리 path — 아래 두 no-restricted-imports 블록(전역 src/**, 엔티티)이 공유한다.
+// flat config 는 같은 룰 키를 마지막 매칭 블록이 통째로 덮어쓰므로, 엔티티 블록도 이 항목을 포함해야
+// axios 격리가 엔티티에서 조용히 풀리지 않는다(zod 만 넣지 말 것).
+const restrictAxiosInstance = {
+  name: '@/shared/api',
+  importNames: ['axiosInstance'],
+  message:
+    'axios 호출은 features/*/api 세그먼트에만 두세요. 컴포넌트는 React Query 훅(useAuth·useUsers)을 거칩니다.',
 };
 
 export default tseslint.config(
@@ -137,6 +188,23 @@ export default tseslint.config(
         'error',
         { namedComponents: 'arrow-function', unnamedComponents: 'arrow-function' },
       ],
+      // 색 하드코딩 가드레일 — 리터럴 색(#hex·rgb/hsl)을 차단해 Shadcn/UI 시맨틱 토큰 사용을
+      // 강제한다. 색은 Tailwind 토큰 클래스(bg-primary·text-muted-foreground 등)나
+      // src/app/styles/index.css 의 CSS 변수를 거친다. 스토리는 아래 override 로 예외.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
+          message:
+            '색상은 시맨틱 토큰을 사용하세요(하드코딩 #hex 금지). Tailwind 토큰 클래스(bg-primary·text-muted-foreground) 또는 index.css 의 CSS 변수를 참고하세요.',
+        },
+        {
+          // #hex 우회로 rgb()/hsl() 리터럴 색을 박는 것도 함께 차단(named color 는 오탐 방지로 제외 — 리뷰가 받는다).
+          selector: 'Literal[value=/^(?:rgb|rgba|hsl|hsla)\\(/i]',
+          message:
+            '색상은 시맨틱 토큰을 사용하세요(rgb/hsl 리터럴 금지). Tailwind 토큰 클래스 또는 index.css 의 CSS 변수를 참고하세요.',
+        },
+      ],
       // 파일 구현 구조 강제(로컬 플러그인) — queryKey 상수 객체·named export 통일.
       'local/query-key-object': 'error',
       'local/no-default-export': 'error',
@@ -154,6 +222,14 @@ export default tseslint.config(
     },
   },
   {
+    // 색 하드코딩 규칙 예외:
+    // - 스토리: 디자인 토큰 데모·시각 비교 목적.
+    // - 빌드/툴 설정: PWA 매니페스트의 theme_color·background_color 는 W3C 사양상 리터럴 색이어야
+    //   하며(브라우저 UI 가 CSS 변수를 해석하지 않는다), 그 값은 index.css 의 토큰과 손으로 맞춘다.
+    files: ['**/*.stories.tsx', '**/*.config.{ts,tsx}'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
     // default export 가 규약상 필요한 파일: Storybook(meta·preview), 빌드/툴 설정(vite·orval·steiger·playwright 등).
     files: ['**/*.stories.tsx', '**/*.config.{ts,tsx}', '.storybook/**'],
     rules: { 'local/no-default-export': 'off' },
@@ -164,19 +240,46 @@ export default tseslint.config(
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/**/api/**'],
     rules: {
+      'no-restricted-imports': ['error', { paths: [restrictAxiosInstance] }],
+    },
+  },
+  {
+    // 엔티티는 타입 전용 레이어 — 런타임 검증(zod)은 features/*/model/*Schema.ts 에 둔다.
+    // axios 격리도 함께 유지: flat config 는 같은 룰을 마지막 매칭 블록이 덮어쓰므로,
+    // restrictAxiosInstance 를 여기서도 포함해 엔티티에서 격리가 풀리지 않게 한다(zod 만 넣지 말 것).
+    files: ['src/entities/**/*.{ts,tsx}'],
+    rules: {
       'no-restricted-imports': [
         'error',
         {
           paths: [
+            restrictAxiosInstance,
             {
-              name: '@/shared/api',
-              importNames: ['axiosInstance'],
+              name: 'zod',
               message:
-                'axios 호출은 features/*/api 세그먼트에만 두세요. 컴포넌트는 React Query 훅(useAuth·useUsers)을 거칩니다.',
+                'zod 검증은 features/*/model/*Schema.ts 에 두세요. 엔티티는 타입 전용 레이어입니다.',
             },
           ],
         },
       ],
+    },
+  },
+  {
+    // 생성 도메인 훅/DTO 격리 — model/api/lib 래퍼 세그먼트 밖(주로 ui/컴포넌트)에서 `@/shared/api`
+    // 의 생성 심볼 직접 import 금지. 별도 룰 키라 위 no-restricted-imports/syntax 블록과 충돌 없음.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/**/api/**',
+      'src/**/model/**',
+      'src/**/lib/**',
+      'src/**/config/**',
+      'src/app/mocks/**',
+      'src/**/*.test.{ts,tsx}',
+      'src/**/*.stories.tsx',
+    ],
+    plugins: { local },
+    rules: {
+      'local/no-generated-api-outside-wrapper': 'error',
     },
   },
   ...storybook.configs['flat/recommended'],
@@ -213,6 +316,17 @@ export default tseslint.config(
       ...security.configs.recommended.rules,
       // 프론트 정적 라우팅에서 노이즈만 만드는 룰을 끈다(객체 인젝션·비literal fs 경로).
       'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
+    },
+  },
+  {
+    // Node 빌드 스크립트(브라우저 아님) — node 전역을 쓰고 리포 고정 경로에 파일을 쓴다
+    // (scripts/gen-icons.mjs 가 public/ 에 플레이스홀더 아이콘을 생성). ts/tsx 전용 규칙
+    // (naming·import-sort·local 플러그인)은 files 매칭에서 빠져 적용되지 않는다.
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: globals.node },
+    rules: {
+      // 생성 경로는 리포 고정이라 비literal fs 경고는 노이즈.
       'security/detect-non-literal-fs-filename': 'off',
     },
   },

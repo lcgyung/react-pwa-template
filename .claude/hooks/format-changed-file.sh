@@ -4,7 +4,7 @@
 # prettier 실행 시 함께 적용된다.
 set -euo pipefail
 INPUT=$(cat)
-FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
 [ -z "$FILE" ] && exit 0
 [ -f "$FILE" ] || exit 0
 
@@ -13,7 +13,7 @@ case "$FILE" in
     pnpm exec prettier --write "$FILE" >/dev/null 2>&1 || true
     pnpm exec eslint --fix "$FILE"     >/dev/null 2>&1 || true
     ;;
-  *.css|*.json|*.md|*.webmanifest)
+  *.css|*.scss|*.json|*.md|*.webmanifest)
     pnpm exec prettier --write "$FILE" >/dev/null 2>&1 || true
     ;;
 esac

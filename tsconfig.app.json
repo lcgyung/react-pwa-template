@@ -1,17 +1,8 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
     "jsx": "react-jsx",
 
     /* Path alias — baseUrl 제거: TS6 에서 deprecated(TS7 제거 예정). bundler 모드는 baseUrl 없이 paths 해석 */
@@ -19,15 +10,8 @@
       "@/*": ["./src/*"]
     },
 
-    /* Types */
-    "types": ["vitest/globals", "@testing-library/jest-dom", "vite-plugin-pwa/client"],
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    /* Types — vite-plugin-pwa/client 는 virtual:pwa-register 모듈 타입(PWABadge 가 소비) */
+    "types": ["vitest/globals", "@testing-library/jest-dom", "vite-plugin-pwa/client"]
   },
   "include": ["src", "vitest.setup.ts"]
 }

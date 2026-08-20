@@ -1,0 +1,2 @@
+# orval 생성물 — PR diff 에서 자동으로 접히고 언어 통계에서 제외된다(리뷰 노이즈 감소).
+src/shared/api/generated/** linguist-generated=true
