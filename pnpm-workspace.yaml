@@ -12,15 +12,7 @@ allowBuilds:
 # .claude/rules/security.md '공급망 — 의존성 유휴기간' 참조. 신뢰·긴급 패키지는 minimumReleaseAgeExclude 로 한시 예외.
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
-  - '@storybook/addon-docs@10.4.4'
-  - '@storybook/builder-vite@10.4.4'
-  - '@storybook/csf-plugin@10.4.4'
-  - '@storybook/react-dom-shim@10.4.4'
-  - '@storybook/react-vite@10.4.4'
-  - '@storybook/react@10.4.4'
   - eslint-plugin-better-tailwindcss@4.6.0
-  - eslint-plugin-storybook@10.4.4
-  - storybook@10.4.4
 onlyBuiltDependencies:
   - esbuild
   - msw
