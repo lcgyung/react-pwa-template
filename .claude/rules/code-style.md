@@ -30,17 +30,24 @@ paths:
 - **enum 단일 출처** — `Role` 등 도메인 값은 `entities`의 `ROLES`(`entities/user`)를 단일 출처로
   재사용한다(`z.enum(ROLES)`). 문자열 배열 중복 정의 금지.
 - **스타일(shadcn/Tailwind v4)** — 클래스 병합은 `@/shared/lib/cn`의 `cn()`(clsx + tailwind-merge)을
-  쓴다. 색·간격·타이포는 Tailwind 유틸리티와 디자인 토큰(CSS 변수, `src/app/styles/index.css`의
-  `:root`/`.dark`)으로 표현하고, 임의값(`bg-[#fff]`) 하드코딩을 지양한다. 클래스 정렬은
-  `prettier-plugin-tailwindcss`가, 미사용/오타 점검은 `better-tailwindcss`(warn)가 담당한다.
-  다크 모드는 `ThemeProvider`가 `<html>`에 `dark` 클래스를 토글하는 Tailwind class 전략을 쓴다.
-  > admin-template의 MUI `sx` 전용 `#hex` 금지 룰(`no-restricted-syntax`)은 이식하지 않는다 — pwa는
-  > 색 단일소스가 CSS 변수이고 임의값이 className 문자열이라 bare `#hex` literal 규칙의 표면적이 없다.
-  > 디자인 토큰 강제는 위 Tailwind/CSS 변수 + `better-tailwindcss`로 충족한다.
+  쓴다. variant 가 많은 컴포넌트는 `cva`로 정의한다(분기 className 떡칠 금지). 색·간격·타이포는
+  Tailwind 유틸리티와 디자인 토큰(CSS 변수, `src/app/styles/index.css`의 `:root`/`.dark`)으로 표현한다.
+  클래스 정렬은 `prettier-plugin-tailwindcss`가, 미사용/오타 점검은 `better-tailwindcss`(warn)가
+  담당한다. 다크 모드는 `ThemeProvider`가 `<html>`에 `dark` 클래스를 토글하는 Tailwind class 전략이라,
+  `dark:` 하드코딩보다 시맨틱 토큰을 우선한다.
+- **색 하드코딩 금지(error)** — `no-restricted-syntax`가 `#hex`·`rgb()/rgba()/hsl()/hsla()` 리터럴을
+  **error 로 차단**한다. 색은 Tailwind 시맨틱 토큰 클래스(`bg-primary`·`text-muted-foreground`·
+  `border-border`)나 `index.css`의 CSS 변수를 거친다. named color·임의값(`bg-[#abc]`)은 문자열이라
+  린트가 못 막으니 리뷰가 받는다.
+  - 예외는 `*.stories.tsx`(토큰 데모)와 `*.config.{ts,tsx}` 두 곳뿐이다. 설정 예외가 필요한 이유는
+    **PWA 매니페스트** — `vite.config.ts`의 `theme_color`·`background_color`는 W3C 사양상 리터럴 색이어야
+    하고(브라우저 UI 가 CSS 변수를 해석하지 않는다), 그 값은 `index.css`의 토큰과 **손으로 맞춘다**.
+    테마 색을 바꿀 때 두 곳을 함께 고칠 것.
 - **접근성(a11y)** — `eslint-plugin-jsx-a11y` recommended를 강제한다. 인터랙티브 요소의
   label/aria/role·키보드 접근 위반은 린트에서 막힌다. Radix 기반 프리미티브의 포커스·키보드 동작을 보존한다.
 - **JSDoc 범위** — JSDoc/주석은 공개 API(배럴로 노출되는 함수·훅)와 비자명한 로직·함정(gotcha)에
   한정한다(예: `shared/api/axiosInstance.ts`의 인증 브리지 주석). 자명한 컴포넌트엔 생략한다.
-- **커밋 위생(자동)** — Husky + lint-staged가 커밋 시 변경 파일에 `eslint --fix` + prettier를
-  적용하고, 커밋 메시지는 commitlint(Conventional Commits, `.husky/commit-msg`)가 검증한다 —
-  타입 프리픽스(`feat:`/`fix:`/`docs:` 등) 없으면 커밋 거부.
+- **커밋 위생(자동)** — Husky pre-commit 이 gitleaks(staged 시크릿) → lint-staged(`eslint --fix` +
+  prettier) → `typecheck` → `lint:fsd` → `test:related`(staged `src` 관련 테스트) 순으로 돈다.
+  커밋 메시지는 commitlint(Conventional Commits, `.husky/commit-msg`)가 검증한다 — 타입
+  프리픽스(`feat:`/`fix:`/`docs:` 등) 없으면 커밋 거부. `--no-verify` 금지.

@@ -45,14 +45,32 @@ pnpm exec vitest run src/app/router/guards.test.tsx   # 단일 파일
 pnpm exec vitest run -t "redirects to /login"         # 테스트명(-t)으로 단일 케이스
 
 pnpm typecheck                   # 타입체크 단독 (tsc -b --noEmit, project references)
-pnpm verify                      # typecheck + lint + format:check + test + lint:fsd (빌드 제외 고속 일괄 검증)
+pnpm verify                      # typecheck + lint + format:check + lint:fsd + test:coverage (전체 정본, 빌드 제외)
 pnpm verify:full                 # verify + build — 체크리스트의 "단일 명령" 전체 게이트
+
+# 스코프 실행 — 훅·pre-commit 이 쓰는 파일 단위 변형(사람이 직접 쓸 일은 드물다)
+pnpm lint:files <파일...>        # eslint --no-warn-ignored
+pnpm format:check:files <파일...> # prettier --check --ignore-unknown
+pnpm test:related <파일...>      # 변경 파일 관련 테스트만 (커버리지 미포함)
 
 pnpm storybook                   # Storybook (6006)
 pnpm build-storybook             # 정적 Storybook 빌드
 ```
 
 테스트는 별도 커스텀 스크립트 없이 위의 Vitest 표준 단일 실행 방식을 사용하세요.
+
+**검증 계층** — 같은 `package.json` scripts 를 단일 출처로 공유하되 스코프가 다르다.
+
+| 시점            | 무엇이                     | 스코프                                                                       |
+| --------------- | -------------------------- | ---------------------------------------------------------------------------- |
+| Edit/Write 직후 | `format-changed-file.sh`   | 그 파일만 (prettier + eslint --fix)                                          |
+| 턴 종료 (Stop)  | `gate.sh`                  | tsc·steiger 는 전체, eslint·prettier·vitest 는 **세션이 바꾼 파일만**        |
+| 커밋            | `.husky/pre-commit`        | gitleaks(staged) → lint-staged → typecheck → lint:fsd → test:related(staged) |
+| PR 전 (수동)    | `pnpm verify`              | 전체 5종 정본 (커버리지 포함)                                                |
+| CI              | `.github/workflows/ci.yml` | `verify` 파리티 + build + gitleaks · sca · lighthouse · e2e                  |
+
+커버리지 ratchet 은 **CI 에서만 전체 강제**된다 — 로컬 게이트는 `vitest related`(커버리지 미포함)로
+빠르게 돈다.
 
 ## 프로젝트 구조 (FSD 6레이어)
 
@@ -132,8 +150,9 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 - 강제의 정본은 `eslint.config.js`(+`tsconfig` strict)·`steiger.config.ts` — 해설·요약은
   [`.claude/rules/code-style.md`](.claude/rules/code-style.md)(네이밍·import 정렬·queryKey 객체·
   default export 금지·a11y 등, admin-template 과 동일 체계).
-- 커밋: Husky + lint-staged 가 자동 포맷, 메시지는 commitlint(Conventional Commits) — `feat:` 등
-  타입 프리픽스 없으면 커밋 거부.
+- 커밋: Husky pre-commit 이 gitleaks(staged) → lint-staged(자동 포맷) → `typecheck` → `lint:fsd` →
+  `test:related`(staged `src`) 순으로 돈다. 메시지는 commitlint(Conventional Commits) — `feat:` 등
+  타입 프리픽스 없으면 커밋 거부. **`--no-verify` 금지.**
 - 테스트 커버리지 ratchet: `vite.config.ts` 임계값을 CI 가 강제 — **하향 금지**, 테스트를 추가하며
   점진 상향([`.claude/rules/testing.md`](.claude/rules/testing.md)).
 
@@ -141,7 +160,7 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 
 `.claude/settings.json` 이 훅을 등록한다. 코드를 만질 때 아래 동작을 전제로 한다.
 
-- **SessionStart** → `session-context.sh`(현재 브랜치 주입) + `contamination-report.sh`(knip 으로 dead code/unused export 후보를 "오염 맵"으로 주입 — 탐지·인지 전용, 옵트인 `CC_CONTAMINATION_REPORT=1`. 캐시·타임아웃·미설치 시 비차단. 정책 정본 `.claude/rules/pattern-contamination.md`).
+- **SessionStart** → `session-context.sh`(현재 브랜치 주입) + `contamination-report.sh`(knip 으로 dead code/unused export 후보를 "오염 맵"으로 주입 — 탐지·인지 전용, `CC_CONTAMINATION_REPORT=1`. 캐시·타임아웃·미설치 시 비차단. 정책 정본 `.claude/rules/pattern-contamination.md`) + `autocommit-baseline.sh`(세션 시작 시점 dirty 파일의 내용 해시를 `$(git rev-parse --git-dir)/cc_autocommit/<sid>.baseline` 에 기록 — 아래 Stop 게이트의 세션 스코프 계산이 이를 전제하므로 `CC_AUTOCOMMIT` 토글과 무관하게 항상 기록된다).
 - **정적 규칙(`.claude/rules/`)** → 파일별 `paths` 글롭으로 자동 주입. 강제의 정본은
   `eslint.config.js`/`steiger.config.ts`/`tsconfig` 이며 rules 문서는 해설(충돌 시 설정 우선).
 - **PreToolUse(Bash)** → `guard-bash.sh`: 파괴적 명령(`rm -rf /`, force push, `reset --hard`)을 차단.
@@ -150,10 +169,24 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
   `permission_mode`를 못 읽으면(빈/미지 값) 강화 규칙을 적용한다 — 판단 불가 시 강하게(fail-closed).
 - **PostToolUse(Edit/Write)** → `format-changed-file.sh`(`eslint --fix` + `prettier`) +
   `check-pwa.sh`(매니페스트/SW 설정 검증).
-- **Stop** → `gate.sh`: `pnpm verify` 와 동일 단계(typecheck/lint/format:check/test/lint:fsd)를
-  && 체인 대신 전부 실행해 에러를 집계하고, 실패 시 `exit 2` 로 계속 수정을 유도한다.
-- `.claude/agents/code-reviewer.md` + `.claude/skills/code-review/`(FSD 경계 점검 포함) +
-  `.claude/skills/contamination-sweep/`(전체 코드베이스 Pattern Contamination 정기 스윕 — 전용 세션) 제공.
+- **Stop** → `gate.sh`: **세션 스코프 게이트**. SessionStart baseline 대비 내용 해시 diff 로 "이번
+  세션이 바꾼 파일"을 가려내고, 그 파일에만 `lint:files`·`format:check:files`·`test:related` 를
+  건다(같은 브랜치의 무관한 WIP 가 게이트를 막지 않는다). 파일 단위로 쪼갤 수 없는 `typecheck`(tsc -b)와
+  `lint:fsd`(steiger)는 전체 실행·전체 차단. 검사는 **병렬 실행 + 명령별 타임아웃**
+  (`CC_GATE_TIMEOUT`, 기본 180초)이며 로그는 `mktemp -d` 로 세션별 격리한다. 실패 시 라벨별 에러를
+  집계해 `exit 2` 로 계속 수정을 유도한다. 세션 변경이 0건이거나 plan 모드면 스킵하고,
+  `stop_hook_active` 재호출은 무한루프 가드가 통과시킨다.
+  baseline 이 없으면(SessionStart 미실행 등) 보수적으로 **전체 5종**(`typecheck`·`lint`·`format:check`·
+  `lint:fsd`·`test:coverage`)으로 폴백한다.
+- **자동 커밋 넛지**(옵트인 `CC_AUTOCOMMIT=1`, settings.json env) — 게이트가 green 이면 미커밋 세션
+  파일을 알린다. 세션 시작 시 clean 이던 파일 = **own**(커밋 유도), 이미 dirty 였던 파일 =
+  **overlap**(병렬/기존 작업과 겹침 → 보류하고 `AskUserQuestion` 으로 확인). 훅은 **직접 커밋하지
+  않는다**(한글 Conventional Commits 메시지 품질·판단은 Claude 몫). 보호 브랜치
+  (`CC_AUTOCOMMIT_PROTECT`, 기본 `main master`)에서는 넛지하지 않는다.
+- `.claude/agents/code-reviewer.md` + 스킬 6종: `code-review`(FSD 경계·PWA 점검 포함) ·
+  `contamination-sweep`(전체 코드베이스 정기 스윕 — 전용 세션) · `test-driven-development`(RED-GREEN-REFACTOR) ·
+  `systematic-debugging`(근본 원인 4단계) · `receiving-code-review`(리뷰 받는 쪽 규율) ·
+  `writing-plans`(승인된 계획을 `docs/plans/` 에 기록).
 
 ## 보안
 
@@ -174,8 +207,12 @@ PWA 정적 리소스(매니페스트 아이콘 등)는 `public/`에 둡니다.
 ## 로드맵
 
 - [x] **admin 파리티 도달** — 보일러플레이트 · FSD 마이그레이션(Steiger 하드 강제) · 하네스 갭
-      보완(`pnpm verify` · RQ persist · web-vitals) 완료. 잔여 백로그: Sentry 🟡 · `/tdd` 스킬 ·
-      coverage 임계값 점진 상향.
+      보완(`pnpm verify` · RQ persist · web-vitals) 완료.
+- [x] **하네스 역반영(momori)** — 파생 리포(`momori-parent-web`·`momori-landing-web`)에서 다듬어진
+      하네스를 역반영: Stop 게이트 세션 스코프화(병렬·타임아웃·자동 커밋 넛지) · pre-commit 강화 ·
+      CI `format:check` · 생성 API 래퍼 격리 룰 · 색 토큰 강제 · `tsconfig.base.json` · 스킬 4종
+      (`test-driven-development`·`systematic-debugging`·`receiving-code-review`·`writing-plans`).
+      PWA 설정은 불변으로 보존. 잔여 백로그: Sentry 🟡 · coverage 임계값 점진 상향.
 - [ ] **하네스 문서 계층화 역적용** — 얇은 CLAUDE.md + rules 단일 소유 구조를 react-admin-template
       에도 적용.
 - [ ] **파리티 이후** — Push Notification · Offline Data Sync · i18n · Social Login.
