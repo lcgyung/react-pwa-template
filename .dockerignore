@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+storybook-static
+coverage
+.git
+.github
+.husky
+*.log
+.env*
+Dockerfile
+README.md
